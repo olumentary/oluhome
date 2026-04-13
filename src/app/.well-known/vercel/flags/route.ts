@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
-export async function GET() {
-  return NextResponse.json({});
-}
+import { createFlagsDiscoveryEndpoint, getProviderData } from 'flags/next';
+import * as flags from '@/flags';
+
+export const GET = createFlagsDiscoveryEndpoint(() => getProviderData(flags));
