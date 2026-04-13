@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+/* Class-based dark mode for next-themes compatibility */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ─── Design system tokens ─────────────────────────────────────── */
+:root {
+  /* Brand */
+  --primary: #2E3D6B;
+  --primary-light: #818AA6;
+
+  /* Page & surface */
+  --background: #FDF9F2;
+  --surface: #FFFFFF;
+  --surface-alt: #F5F1EA;
+
+  /* Text */
+  --text: #1C1E26;
+  --text-muted: #6B6E7B;
+
+  /* Border / input */
+  --border: #E0DDD6;
+
+  /* Status */
+  --success: #4B8C5A;
+  --warning: #BEA03C;
+  --danger: #AF504B;
+
+  /* ── shadcn/ui expected variables (mapped to our palette) ───── */
+  --background: #FDF9F2;
+  --foreground: #1C1E26;
+  --card: #FFFFFF;
+  --card-foreground: #1C1E26;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1E26;
+  --primary: #2E3D6B;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F5F1EA;
+  --secondary-foreground: #1C1E26;
+  --muted: #F5F1EA;
+  --muted-foreground: #6B6E7B;
+  --accent: #F5F1EA;
+  --accent-foreground: #1C1E26;
+  --destructive: #AF504B;
+  --destructive-foreground: #FFFFFF;
+  --border: #E0DDD6;
+  --input: #E0DDD6;
+  --ring: #2E3D6B;
+  --radius: 0.5rem;
+
+  /* Chart colours (recharts) */
+  --chart-1: #2E3D6B;
+  --chart-2: #4B8C5A;
+  --chart-3: #BEA03C;
+  --chart-4: #AF504B;
+  --chart-5: #818AA6;
+}
+
+.dark {
+  /* Page & surface */
+  --background: #181A21;
+  --surface: #20232C;
+  --surface-alt: #282B36;
+
+  /* Text */
+  --text: #E8E6E1;
+  --text-muted: #9B9DA6;
+
+  /* Border */
+  --border: #353845;
+
+  /* ── shadcn/ui dark overrides ────────────────────────────────── */
+  --background: #181A21;
+  --foreground: #E8E6E1;
+  --card: #20232C;
+  --card-foreground: #E8E6E1;
+  --popover: #20232C;
+  --popover-foreground: #E8E6E1;
+  --secondary: #282B36;
+  --secondary-foreground: #E8E6E1;
+  --muted: #282B36;
+  --muted-foreground: #9B9DA6;
+  --accent: #282B36;
+  --accent-foreground: #E8E6E1;
+  --border: #353845;
+  --input: #353845;
+}
+
+/* ─── Tailwind theme mapping ────────────────────────────────────── */
+@theme inline {
+  /* Semantic color utilities */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-light: var(--primary-light);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* Design system aliases */
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  /* Chart */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  /* Typography */
+  --font-sans: var(--font-inter);
+
+  /* Border radius */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/* ─── Base styles ───────────────────────────────────────────────── */
+* {
+  border-color: var(--border);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--text);
+  transition: background-color 0.2s, color 0.2s;
+}
