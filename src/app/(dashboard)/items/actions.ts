@@ -24,6 +24,7 @@ import {
   acquisitions,
   valuations,
   aiAnalyses,
+  vendors,
 } from '@/db/schema';
 import { itemFormSchema } from '@/lib/validators';
 import { generateDynamicSchema } from '@/lib/validators';
@@ -368,7 +369,24 @@ export async function createItem(
     })
     .returning({ id: collectionItems.id });
 
+  // If a vendor was selected, create an initial acquisition linking them
+  const vendorId = formData.get('vendorId') as string | null;
+  if (vendorId) {
+    const vendor = await db.query.vendors.findFirst({
+      where: and(eq(vendors.id, vendorId), eq(vendors.userId, user.id)),
+      columns: { id: true },
+    });
+    if (vendor) {
+      await db.insert(acquisitions).values({
+        itemId: created.id,
+        vendorId,
+        acquisitionType: 'purchase',
+      });
+    }
+  }
+
   revalidatePath('/items');
+  revalidatePath('/vendors');
   revalidatePath('/');
   return { success: true, id: created.id };
 }
@@ -466,8 +484,52 @@ export async function updateItem(
       ),
     );
 
+  // Handle vendor association via acquisition record
+  const vendorId = formData.get('vendorId') as string | null;
+  // vendorId is present when user selected a vendor; empty string means cleared
+  const vendorFieldPresent = formData.has('vendorId');
+  if (vendorFieldPresent) {
+    // Find the most recent acquisition for this item
+    const latestAcq = await db.query.acquisitions.findFirst({
+      where: eq(acquisitions.itemId, id),
+      orderBy: [desc(acquisitions.createdAt)],
+      columns: { id: true, vendorId: true },
+    });
+
+    if (vendorId) {
+      // Verify vendor belongs to user
+      const vendor = await db.query.vendors.findFirst({
+        where: and(eq(vendors.id, vendorId), eq(vendors.userId, user.id)),
+        columns: { id: true },
+      });
+      if (vendor) {
+        if (latestAcq) {
+          // Update existing acquisition's vendor
+          await db
+            .update(acquisitions)
+            .set({ vendorId })
+            .where(eq(acquisitions.id, latestAcq.id));
+        } else {
+          // Create a new acquisition record
+          await db.insert(acquisitions).values({
+            itemId: id,
+            vendorId,
+            acquisitionType: 'purchase',
+          });
+        }
+      }
+    } else if (latestAcq?.vendorId) {
+      // Vendor was cleared — remove vendor from acquisition
+      await db
+        .update(acquisitions)
+        .set({ vendorId: null })
+        .where(eq(acquisitions.id, latestAcq.id));
+    }
+  }
+
   revalidatePath('/items');
   revalidatePath(`/items/${id}`);
+  revalidatePath('/vendors');
   revalidatePath('/');
   return { success: true, id };
 }

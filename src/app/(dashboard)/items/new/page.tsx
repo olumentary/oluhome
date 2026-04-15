@@ -1,23 +1,45 @@
 import Link from 'next/link';
+import { eq, and } from 'drizzle-orm';
 import { ChevronLeft, Camera } from 'lucide-react';
 import { requireAuth } from '@/lib/auth-helpers';
+import { db } from '@/db';
+import { vendors } from '@/db/schema';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ItemForm } from '@/components/items/item-form';
 import { getItemTypes, getRooms } from '../actions';
 
 interface NewItemPageProps {
-  searchParams: Promise<{ type?: string }>;
+  searchParams: Promise<{ type?: string; vendorId?: string }>;
 }
 
 export default async function NewItemPage({ searchParams }: NewItemPageProps) {
-  await requireAuth();
+  const user = await requireAuth();
   const params = await searchParams;
 
   const [itemTypes, rooms] = await Promise.all([
     getItemTypes(),
     getRooms(),
   ]);
+
+  // If vendorId is in the URL (from "Add Item from this Vendor"), resolve it
+  let initialVendorId: string | undefined;
+  let initialVendorLabel: string | undefined;
+  if (params.vendorId) {
+    const vendor = await db.query.vendors.findFirst({
+      where: and(
+        eq(vendors.id, params.vendorId),
+        eq(vendors.userId, user.id),
+      ),
+      columns: { id: true, name: true, businessName: true },
+    });
+    if (vendor) {
+      initialVendorId = vendor.id;
+      initialVendorLabel = vendor.businessName
+        ? `${vendor.name} (${vendor.businessName})`
+        : vendor.name;
+    }
+  }
 
   const initialValues = params.type
     ? {
@@ -68,6 +90,8 @@ export default async function NewItemPage({ searchParams }: NewItemPageProps) {
       <ItemForm
         itemTypes={itemTypes}
         existingRooms={rooms}
+        initialVendorId={initialVendorId}
+        initialVendorLabel={initialVendorLabel}
         initialValues={initialValues}
       />
 

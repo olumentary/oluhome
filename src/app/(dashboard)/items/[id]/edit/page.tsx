@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, desc } from 'drizzle-orm';
 import { ChevronLeft } from 'lucide-react';
 import { requireAuth } from '@/lib/auth-helpers';
 import { db } from '@/db';
-import { collectionItems, itemPhotos } from '@/db/schema';
+import { collectionItems, itemPhotos, acquisitions } from '@/db/schema';
 import { generatePresignedDownloadUrl } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { ItemForm } from '@/components/items/item-form';
@@ -37,6 +37,27 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
   ]);
 
   if (!item) notFound();
+
+  // Load the most recent acquisition's vendor for the vendor selector
+  const latestAcquisition = await db.query.acquisitions.findFirst({
+    where: eq(acquisitions.itemId, id),
+    orderBy: [desc(acquisitions.createdAt)],
+    with: {
+      vendor: {
+        columns: { id: true, name: true, businessName: true },
+      },
+    },
+  });
+
+  let initialVendorId: string | undefined;
+  let initialVendorLabel: string | undefined;
+  if (latestAcquisition?.vendor) {
+    const v = latestAcquisition.vendor;
+    initialVendorId = v.id;
+    initialVendorLabel = v.businessName
+      ? `${v.name} (${v.businessName})`
+      : v.name;
+  }
 
   // Resolve thumbnail URLs
   const thumbnailUrls: Record<string, string> = {};
@@ -100,6 +121,8 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
         id={id}
         itemTypes={itemTypes}
         existingRooms={rooms}
+        initialVendorId={initialVendorId}
+        initialVendorLabel={initialVendorLabel}
         initialValues={initialValues}
       />
 

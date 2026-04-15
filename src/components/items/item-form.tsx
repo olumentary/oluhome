@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useState, useCallback, type KeyboardEvent } from 'react';
+import { useActionState, useEffect, useState, useCallback, useTransition, type KeyboardEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,22 +23,52 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   createItem,
   updateItem,
   type ItemActionState,
 } from '@/app/(dashboard)/items/actions';
+import { searchVendors, createVendor } from '@/app/(dashboard)/vendors/actions';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { Check, ChevronsUpDown, Plus, X } from 'lucide-react';
 import type { CollectionItemType, FieldSchema, FieldDefinition, CustomFieldValues } from '@/types';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
+interface VendorOption {
+  id: string;
+  name: string;
+  businessName: string | null;
+  type: string | null;
+}
+
 interface ItemFormProps {
   id?: string;
   itemTypes: CollectionItemType[];
   existingRooms: string[];
+  initialVendorId?: string;
+  initialVendorLabel?: string;
   initialValues?: {
     itemTypeId: string;
     title: string;
@@ -315,7 +345,7 @@ function DynamicField({
 // Main ItemForm component
 // ---------------------------------------------------------------------------
 
-export function ItemForm({ id, itemTypes, existingRooms, initialValues }: ItemFormProps) {
+export function ItemForm({ id, itemTypes, existingRooms, initialVendorId, initialVendorLabel, initialValues }: ItemFormProps) {
   const isEditing = !!id;
   const router = useRouter();
   const action = isEditing ? updateItem : createItem;
@@ -323,6 +353,36 @@ export function ItemForm({ id, itemTypes, existingRooms, initialValues }: ItemFo
     action,
     null,
   );
+
+  // Vendor selector state
+  const [vendorId, setVendorId] = useState(initialVendorId ?? '');
+  const [vendorSearch, setVendorSearch] = useState('');
+  const [vendorOptions, setVendorOptions] = useState<VendorOption[]>([]);
+  const [vendorOpen, setVendorOpen] = useState(false);
+  const [selectedVendorLabel, setSelectedVendorLabel] = useState(initialVendorLabel ?? '');
+  const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [quickAddName, setQuickAddName] = useState('');
+  const [quickAddPending, setQuickAddPending] = useState(false);
+  const [, startVendorSearch] = useTransition();
+
+  // Load vendor options on mount and when searching
+  const handleVendorSearch = useCallback(
+    (query: string) => {
+      setVendorSearch(query);
+      startVendorSearch(async () => {
+        const results = await searchVendors(query);
+        setVendorOptions(results);
+      });
+    },
+    [startVendorSearch],
+  );
+
+  useEffect(() => {
+    startVendorSearch(async () => {
+      const results = await searchVendors('');
+      setVendorOptions(results);
+    });
+  }, [startVendorSearch]);
 
   // Base fields state
   const [itemTypeId, setItemTypeId] = useState(initialValues?.itemTypeId ?? '');
@@ -391,6 +451,32 @@ export function ItemForm({ id, itemTypes, existingRooms, initialValues }: ItemFo
     [],
   );
 
+  // Quick-add vendor: create with just a name, then select it
+  async function handleQuickAddVendor() {
+    const trimmed = quickAddName.trim();
+    if (!trimmed) return;
+    setQuickAddPending(true);
+    try {
+      const fd = new FormData();
+      fd.set('json', JSON.stringify({ name: trimmed }));
+      const result = await createVendor(null, fd);
+      if (result.error) {
+        toast.error(result.error);
+      } else if (result.id) {
+        setVendorId(result.id);
+        setSelectedVendorLabel(trimmed);
+        setQuickAddOpen(false);
+        toast.success('Vendor added');
+        // Refresh vendor options
+        const results = await searchVendors('');
+        setVendorOptions(results);
+      }
+    } catch {
+      toast.error('Failed to create vendor');
+    }
+    setQuickAddPending(false);
+  }
+
   // Navigate on success
   useEffect(() => {
     if (state?.success && state.id) {
@@ -428,6 +514,7 @@ export function ItemForm({ id, itemTypes, existingRooms, initialValues }: ItemFo
     };
     formData.set('json', JSON.stringify(payload));
     if (id) formData.set('id', id);
+    formData.set('vendorId', vendorId);
     formAction(formData);
   }
 
@@ -540,6 +627,94 @@ export function ItemForm({ id, itemTypes, existingRooms, initialValues }: ItemFo
                 onChange={(e) => setMakerAttribution(e.target.value)}
                 placeholder="e.g. Thomas Chippendale, attributed to..."
               />
+            </div>
+
+            {/* Vendor selector */}
+            <div className="space-y-1.5">
+              <Label>Vendor / Source</Label>
+              <div className="flex gap-2">
+                <Popover open={vendorOpen} onOpenChange={setVendorOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={vendorOpen}
+                      className="flex-1 justify-between font-normal"
+                      type="button"
+                    >
+                      {selectedVendorLabel || 'Select vendor...'}
+                      <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                    <Command shouldFilter={false}>
+                      <CommandInput
+                        placeholder="Search vendors..."
+                        value={vendorSearch}
+                        onValueChange={handleVendorSearch}
+                      />
+                      <CommandList>
+                        <CommandEmpty>No vendors found.</CommandEmpty>
+                        <CommandGroup>
+                          {vendorId && (
+                            <CommandItem
+                              value=""
+                              onSelect={() => {
+                                setVendorId('');
+                                setSelectedVendorLabel('');
+                                setVendorOpen(false);
+                              }}
+                            >
+                              <X className="mr-2 size-4 text-muted-foreground" />
+                              Clear selection
+                            </CommandItem>
+                          )}
+                          {vendorOptions.map((v) => {
+                            const label = v.businessName
+                              ? `${v.name} (${v.businessName})`
+                              : v.name;
+                            return (
+                              <CommandItem
+                                key={v.id}
+                                value={v.id}
+                                onSelect={() => {
+                                  setVendorId(v.id);
+                                  setSelectedVendorLabel(label);
+                                  setVendorOpen(false);
+                                }}
+                              >
+                                <Check
+                                  className={`mr-2 size-4 ${
+                                    vendorId === v.id
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                                  }`}
+                                />
+                                {label}
+                              </CommandItem>
+                            );
+                          })}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => {
+                    setQuickAddName('');
+                    setQuickAddOpen(true);
+                  }}
+                  title="Add new vendor"
+                >
+                  <Plus className="size-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Optionally link this item to a vendor. Details can be added later.
+              </p>
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -865,6 +1040,52 @@ export function ItemForm({ id, itemTypes, existingRooms, initialValues }: ItemFo
           Cancel
         </Button>
       </div>
+
+      {/* Quick-add vendor dialog */}
+      <Dialog open={quickAddOpen} onOpenChange={setQuickAddOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Quick Add Vendor</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-1.5">
+            <Label htmlFor="quick-vendor-name">Name *</Label>
+            <Input
+              id="quick-vendor-name"
+              value={quickAddName}
+              onChange={(e) => setQuickAddName(e.target.value)}
+              placeholder="Vendor or seller name"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  if (quickAddName.trim()) {
+                    handleQuickAddVendor();
+                  }
+                }
+              }}
+              autoFocus
+            />
+            <p className="text-xs text-muted-foreground">
+              You can fill in contact details and other info later from the Vendors page.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setQuickAddOpen(false)}
+              type="button"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleQuickAddVendor}
+              disabled={!quickAddName.trim() || quickAddPending}
+              type="button"
+            >
+              {quickAddPending ? 'Adding...' : 'Add Vendor'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </form>
   );
 }
