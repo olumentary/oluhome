@@ -3,9 +3,10 @@ config({ path: '.env.local' });
 
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool } from '@neondatabase/serverless';
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { hash } from 'bcryptjs';
 import { users, collectionItemTypes, usageTracking } from './schema';
+import { DEFAULT_ITEM_TYPES } from './default-types';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
 const db = drizzle(pool);
@@ -64,27 +65,19 @@ async function createAdmin() {
 
   console.log(`  Created user: ${admin.id}`);
 
-  // Clone system-default item types
-  const defaults = await db
-    .select()
-    .from(collectionItemTypes)
-    .where(isNull(collectionItemTypes.userId));
-
-  if (defaults.length > 0) {
-    await db.insert(collectionItemTypes).values(
-      defaults.map((d) => ({
-        userId: admin.id,
-        name: d.name,
-        slug: d.slug,
-        description: d.description,
-        icon: d.icon,
-        fieldSchema: d.fieldSchema,
-        displayOrder: d.displayOrder,
-        isDefault: d.isDefault,
-      })),
-    );
-    console.log(`  Cloned ${defaults.length} default item types`);
-  }
+  // Clone default item types
+  await db.insert(collectionItemTypes).values(
+    DEFAULT_ITEM_TYPES.map((t) => ({
+      userId: admin.id,
+      name: t.name,
+      slug: t.slug,
+      description: t.description,
+      icon: t.icon,
+      fieldSchema: t.fieldSchema,
+      displayOrder: t.displayOrder,
+    })),
+  );
+  console.log(`  Created ${DEFAULT_ITEM_TYPES.length} default item types`);
 
   // Create initial usage tracking
   const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;

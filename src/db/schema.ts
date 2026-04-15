@@ -136,14 +136,15 @@ export const collectionItemTypes = pgTable(
   'collection_item_types',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     name: varchar('name', { length: 255 }).notNull(),
     slug: varchar('slug', { length: 255 }).notNull(),
     description: text('description'),
     icon: varchar('icon', { length: 64 }),
     fieldSchema: jsonb('field_schema'),
     displayOrder: integer('display_order').notNull().default(0),
-    isDefault: boolean('is_default').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -152,7 +153,13 @@ export const collectionItemTypes = pgTable(
       .defaultNow()
       .$onUpdate(() => new Date()),
   },
-  (table) => [index('collection_item_types_user_id_idx').on(table.userId)],
+  (table) => [
+    index('collection_item_types_user_id_idx').on(table.userId),
+    uniqueIndex('collection_item_types_user_id_slug_idx').on(
+      table.userId,
+      table.slug,
+    ),
+  ],
 );
 
 export const collectionItems = pgTable(

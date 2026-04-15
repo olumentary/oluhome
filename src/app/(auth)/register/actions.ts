@@ -1,10 +1,11 @@
 'use server';
 
 import { hash } from 'bcryptjs';
-import { eq, isNull } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { signIn } from '@/auth';
 import { db } from '@/db';
 import { users, collectionItemTypes, usageTracking } from '@/db/schema';
+import { DEFAULT_ITEM_TYPES } from '@/db/default-types';
 import { AuthError } from 'next-auth';
 
 export interface RegisterState {
@@ -54,25 +55,18 @@ export async function registerAction(
     })
     .returning({ id: users.id });
 
-  // Clone system-default item types into the new user's account
-  const defaults = await db.query.collectionItemTypes.findMany({
-    where: isNull(collectionItemTypes.userId),
-  });
-
-  if (defaults.length > 0) {
-    await db.insert(collectionItemTypes).values(
-      defaults.map((d) => ({
-        userId: newUser.id,
-        name: d.name,
-        slug: d.slug,
-        description: d.description,
-        icon: d.icon,
-        fieldSchema: d.fieldSchema,
-        displayOrder: d.displayOrder,
-        isDefault: d.isDefault,
-      })),
-    );
-  }
+  // Clone default item types into the new user's account
+  await db.insert(collectionItemTypes).values(
+    DEFAULT_ITEM_TYPES.map((t) => ({
+      userId: newUser.id,
+      name: t.name,
+      slug: t.slug,
+      description: t.description,
+      icon: t.icon,
+      fieldSchema: t.fieldSchema,
+      displayOrder: t.displayOrder,
+    })),
+  );
 
   // Create initial usage tracking record
   const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
