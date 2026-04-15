@@ -58,6 +58,55 @@ export const itemTypeFormSchema = z.object({
 export type ItemTypeFormValues = z.infer<typeof itemTypeFormSchema>;
 
 // ---------------------------------------------------------------------------
+// Item form validators
+// ---------------------------------------------------------------------------
+
+const ITEM_CONDITIONS = [
+  'excellent',
+  'very_good',
+  'good',
+  'fair',
+  'poor',
+] as const;
+
+const ITEM_STATUSES = [
+  'active',
+  'sold',
+  'gifted',
+  'stored',
+  'on_loan',
+] as const;
+
+export const itemFormSchema = z.object({
+  itemTypeId: z.string().uuid('Please select an item type'),
+  title: z.string().min(1, 'Title is required').max(500),
+  description: z.string().max(5000).optional(),
+  period: z.string().max(255).optional(),
+  style: z.string().max(255).optional(),
+  originCountry: z.string().max(255).optional(),
+  originRegion: z.string().max(255).optional(),
+  makerAttribution: z.string().max(500).optional(),
+  materials: z.array(z.string().min(1).max(128)).optional(),
+  condition: z.enum(ITEM_CONDITIONS).optional(),
+  conditionNotes: z.string().max(5000).optional(),
+  height: z.number().positive().optional(),
+  width: z.number().positive().optional(),
+  depth: z.number().positive().optional(),
+  diameter: z.number().positive().optional(),
+  weight: z.number().positive().optional(),
+  room: z.string().max(255).optional(),
+  positionInRoom: z.string().max(255).optional(),
+  customFields: z.record(z.string(), z.unknown()).optional(),
+  provenanceNarrative: z.string().max(10000).optional(),
+  provenanceReferences: z.string().max(5000).optional(),
+  notes: z.string().max(5000).optional(),
+  tags: z.array(z.string().min(1).max(128)).optional(),
+  status: z.enum(ITEM_STATUSES).optional(),
+});
+
+export type ItemFormValues = z.infer<typeof itemFormSchema>;
+
+// ---------------------------------------------------------------------------
 // Dynamic schema generator
 // ---------------------------------------------------------------------------
 
