@@ -6,8 +6,10 @@ import {
   useReactTable,
   getCoreRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   type ColumnDef,
   type SortingState,
+  type RowSelectionState,
   flexRender,
 } from '@tanstack/react-table';
 import { Input } from '@/components/ui/input';
@@ -28,6 +30,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ItemCard } from '@/components/items/item-card';
 import {
   Plus,
@@ -38,6 +47,9 @@ import {
   ChevronLeft,
   ChevronRight,
   ImageOff,
+  FileText,
+  Loader2,
+  X,
 } from 'lucide-react';
 import { getItems, type ItemsResult } from '@/app/(dashboard)/items/actions';
 
@@ -113,6 +125,28 @@ function Thumbnail({ src, alt }: { src: string | null; alt: string }) {
 // ---------------------------------------------------------------------------
 
 const columns: ColumnDef<ItemRow>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    size: 40,
+    enableSorting: false,
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+  },
   {
     accessorKey: 'thumbnail',
     header: '',
@@ -243,6 +277,10 @@ export function ItemsListClient({
   // Table sorting
   const [sorting, setSorting] = useState<SortingState>([]);
 
+  // Row selection
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [pdfLoading, setPdfLoading] = useState(false);
+
   // Pagination cursors
   const [cursorStack, setCursorStack] = useState<string[]>([]);
 
@@ -294,9 +332,36 @@ export function ItemsListClient({
     columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
-    state: { sorting },
+    onRowSelectionChange: setRowSelection,
+    getRowId: (row) => row.id,
+    state: { sorting, rowSelection },
   });
+
+  const selectedCount = Object.keys(rowSelection).length;
+
+  async function generateBatchPdf(template: 'catalog' | 'insurance') {
+    const itemIds = Object.keys(rowSelection);
+    if (itemIds.length === 0) return;
+    setPdfLoading(true);
+    try {
+      const res = await fetch('/api/pdf/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemIds, template }),
+      });
+      if (!res.ok) throw new Error('PDF generation failed');
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch {
+      // Could add toast
+    } finally {
+      setPdfLoading(false);
+    }
+  }
 
   const pageNumber = cursorStack.length + 1;
   const totalPages = Math.ceil(data.totalCount / 24);
@@ -413,6 +478,43 @@ export function ItemsListClient({
           </Button>
         </div>
       </div>
+
+      {/* Selection Action Bar */}
+      {selectedCount > 0 && (
+        <div className="flex items-center gap-3 rounded-lg border bg-card px-4 py-2">
+          <span className="text-sm font-medium">
+            {selectedCount} item{selectedCount !== 1 ? 's' : ''} selected
+          </span>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" disabled={pdfLoading}>
+                {pdfLoading ? (
+                  <Loader2 className="size-4 animate-spin" />
+                ) : (
+                  <FileText className="size-4" />
+                )}
+                Generate PDF
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => generateBatchPdf('catalog')}>
+                Catalog Cards
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => generateBatchPdf('insurance')}>
+                Insurance Sheets
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setRowSelection({})}
+          >
+            <X className="size-4" />
+            Clear
+          </Button>
+        </div>
+      )}
 
       {/* Content */}
       {data.items.length === 0 ? (

@@ -15,6 +15,7 @@ import { generatePresignedDownloadUrl } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RoomPdfButton } from '@/components/rooms/room-pdf-button';
 
 const CONDITION_LABELS: Record<string, string> = {
   excellent: 'Excellent',
@@ -105,6 +106,7 @@ export default async function RoomDetailPage({ params }: RoomDetailPageProps) {
             Rooms
           </Link>
         </Button>
+        <RoomPdfButton room={roomName} />
       </div>
 
       <div className="flex items-center gap-3">

@@ -4,7 +4,7 @@ import { eq, and, desc, asc } from 'drizzle-orm';
 import {
   ChevronLeft,
   Pencil,
-  FileText,
+
   Share2,
   Ruler,
   BookOpen,
@@ -30,6 +30,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ItemDeleteButton } from '@/components/items/item-delete-button';
+import { PdfDropdown } from '@/components/items/pdf-dropdown';
 import { MeasurementEditor } from '@/components/items/measurement-editor';
 import { ItemGallery, PhotoGrid } from '@/components/items/item-gallery';
 import { PhotoUploader } from '@/components/items/photo-uploader';
@@ -187,10 +188,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
               Edit
             </Link>
           </Button>
-          <Button variant="outline" size="sm" disabled>
-            <FileText className="size-4" />
-            PDF
-          </Button>
+          <PdfDropdown itemId={id} />
           <Button variant="outline" size="sm" disabled>
             <Share2 className="size-4" />
             Share
