@@ -165,6 +165,63 @@ export const acquisitionFormSchema = z.object({
 export type AcquisitionFormValues = z.infer<typeof acquisitionFormSchema>;
 
 // ---------------------------------------------------------------------------
+// Valuation form validators
+// ---------------------------------------------------------------------------
+
+const VALUATION_TYPES = [
+  'estimated',
+  'appraised',
+  'insured',
+  'auction_estimate',
+  'retail',
+] as const;
+
+const VALUATION_PURPOSES = [
+  'insurance',
+  'estate',
+  'sale',
+  'donation',
+  'personal',
+] as const;
+
+export const valuationFormSchema = z
+  .object({
+    valuationType: z.enum(VALUATION_TYPES, {
+      message: 'Valuation type is required',
+    }),
+    isRange: z.boolean(),
+    valueLow: z.number().nonnegative().optional(),
+    valueHigh: z.number().nonnegative().optional(),
+    valueSingle: z.number().nonnegative().optional(),
+    appraiserName: z.string().max(255).optional(),
+    appraiserCredentials: z.string().max(500).optional(),
+    valuationDate: z.string().optional(),
+    purpose: z.enum(VALUATION_PURPOSES).optional(),
+    notes: z.string().max(5000).optional(),
+    documentS3Key: z.string().max(1024).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.isRange) {
+        return data.valueLow != null && data.valueHigh != null;
+      }
+      return data.valueSingle != null;
+    },
+    { message: 'Please provide a value or value range', path: ['valueSingle'] },
+  )
+  .refine(
+    (data) => {
+      if (data.isRange && data.valueLow != null && data.valueHigh != null) {
+        return data.valueHigh >= data.valueLow;
+      }
+      return true;
+    },
+    { message: 'High value must be greater than or equal to low value', path: ['valueHigh'] },
+  );
+
+export type ValuationFormValues = z.infer<typeof valuationFormSchema>;
+
+// ---------------------------------------------------------------------------
 // Dynamic schema generator
 // ---------------------------------------------------------------------------
 

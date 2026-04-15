@@ -34,7 +34,9 @@ import { MeasurementEditor } from '@/components/items/measurement-editor';
 import { ItemGallery, PhotoGrid } from '@/components/items/item-gallery';
 import { PhotoUploader } from '@/components/items/photo-uploader';
 import { AcquisitionDisplay } from '@/components/items/acquisition-display';
+import { ValuationDisplay } from '@/components/items/valuation-display';
 import { getItemAcquisitions } from '../acquisition-actions';
+import { getValuationHistory } from '../valuation-actions';
 import type { FieldSchema, FieldDefinition, CustomFieldValues } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -128,8 +130,11 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
   if (!item) notFound();
 
-  // Fetch acquisitions with vendor info and receipt URLs
-  const itemAcquisitions = await getItemAcquisitions(id);
+  // Fetch acquisitions and valuations in parallel
+  const [itemAcquisitions, itemValuations] = await Promise.all([
+    getItemAcquisitions(id),
+    getValuationHistory(id),
+  ]);
 
   const fieldSchema = item.itemType.fieldSchema as FieldSchema | null;
   const customFields = (item.customFields as CustomFieldValues) ?? {};
@@ -457,16 +462,9 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
           <AcquisitionDisplay itemId={id} acquisitions={itemAcquisitions} />
         </TabsContent>
 
-        {/* Valuations Tab — Placeholder */}
+        {/* Valuations Tab */}
         <TabsContent value="valuations">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <TrendingUp className="size-10 text-muted-foreground/40" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                Valuation timeline coming soon.
-              </p>
-            </CardContent>
-          </Card>
+          <ValuationDisplay itemId={id} valuations={itemValuations} />
         </TabsContent>
 
         {/* Photos Tab — Gallery + Uploader */}

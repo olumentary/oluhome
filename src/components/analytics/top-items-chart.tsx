@@ -12,7 +12,7 @@ import {
   Cell,
 } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { ValueByRoom } from '@/lib/queries/analytics';
+import type { TopItem } from '@/lib/queries/analytics';
 
 function formatCurrency(value: number): string {
   if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
@@ -20,35 +20,41 @@ function formatCurrency(value: number): string {
   return `$${value.toFixed(0)}`;
 }
 
-interface ValueByRoomChartProps {
-  data: ValueByRoom[];
+interface TopItemsChartProps {
+  data: TopItem[];
 }
 
-export function ValueByRoomChart({ data }: ValueByRoomChartProps) {
+export function TopItemsChart({ data }: TopItemsChartProps) {
   const router = useRouter();
 
   if (data.length === 0) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Value by Room</CardTitle>
+          <CardTitle className="text-base">Top Items by Value</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-          No room data available. Assign items to rooms to see this chart.
+          No valued items yet. Add valuations to see your top items.
         </CardContent>
       </Card>
     );
   }
 
+  // Truncate long titles for y-axis
+  const chartData = data.map((d) => ({
+    ...d,
+    shortTitle: d.title.length > 28 ? d.title.slice(0, 25) + '...' : d.title,
+  }));
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Value by Room</CardTitle>
+        <CardTitle className="text-base">Top {data.length} Items by Value</CardTitle>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={Math.max(200, data.length * 44)}>
+        <ResponsiveContainer width="100%" height={Math.max(200, data.length * 40)}>
           <BarChart
-            data={data}
+            data={chartData}
             layout="vertical"
             margin={{ top: 0, right: 16, bottom: 0, left: 0 }}
           >
@@ -60,23 +66,27 @@ export function ValueByRoomChart({ data }: ValueByRoomChartProps) {
             <XAxis
               type="number"
               tickFormatter={formatCurrency}
-              tick={{ fontSize: 12, fill: 'var(--text-muted)' }}
+              tick={{ fontSize: 11, fill: 'var(--text-muted)' }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               type="category"
-              dataKey="room"
-              width={120}
-              tick={{ fontSize: 12, fill: 'var(--text)' }}
+              dataKey="shortTitle"
+              width={180}
+              tick={{ fontSize: 11, fill: 'var(--text)' }}
               axisLine={false}
               tickLine={false}
             />
             <Tooltip
               formatter={(value) => [
                 formatCurrency(Number(value)),
-                'Total Value',
+                'Value',
               ]}
+              labelFormatter={(label) => {
+                const item = chartData.find((d) => d.shortTitle === label);
+                return item?.title ?? label;
+              }}
               contentStyle={{
                 backgroundColor: 'var(--surface)',
                 border: '1px solid var(--border)',
@@ -85,17 +95,15 @@ export function ValueByRoomChart({ data }: ValueByRoomChartProps) {
               }}
             />
             <Bar
-              dataKey="totalValue"
+              dataKey="value"
               radius={[0, 4, 4, 0]}
               cursor="pointer"
               onClick={(_entry, index) => {
-                const room = data[index]?.room;
-                if (room) {
-                  router.push(`/rooms/${encodeURIComponent(room)}`);
-                }
+                const item = chartData[index];
+                if (item?.id) router.push(`/items/${item.id}`);
               }}
             >
-              {data.map((_, i) => (
+              {chartData.map((_, i) => (
                 <Cell key={i} fill="var(--primary)" />
               ))}
             </Bar>
