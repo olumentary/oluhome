@@ -6,7 +6,6 @@ import {
   Pencil,
   FileText,
   Share2,
-  ImageOff,
   Ruler,
   BookOpen,
   ShoppingBag,
@@ -23,6 +22,7 @@ import {
   itemMeasurements,
   valuations,
 } from '@/db/schema';
+import { generatePresignedDownloadUrl } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,6 +30,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ItemDeleteButton } from '@/components/items/item-delete-button';
 import { MeasurementEditor } from '@/components/items/measurement-editor';
+import { ItemGallery, PhotoGrid } from '@/components/items/item-gallery';
+import { PhotoUploader } from '@/components/items/photo-uploader';
 import type { FieldSchema, FieldDefinition, CustomFieldValues } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -70,6 +72,26 @@ function formatCustomValue(field: FieldDefinition, value: unknown): string {
   return String(value);
 }
 
+async function resolvePhotoUrls(photos: { id: string; s3Key: string; thumbnailKey: string | null }[]) {
+  const thumbnailUrls: Record<string, string> = {};
+  const fullUrls: Record<string, string> = {};
+
+  await Promise.all(
+    photos.map(async (photo) => {
+      try {
+        if (photo.thumbnailKey) {
+          thumbnailUrls[photo.id] = await generatePresignedDownloadUrl(photo.thumbnailKey);
+        }
+        fullUrls[photo.id] = await generatePresignedDownloadUrl(photo.s3Key);
+      } catch {
+        // If URL generation fails, leave as undefined
+      }
+    }),
+  );
+
+  return { thumbnailUrls, fullUrls };
+}
+
 // ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
@@ -105,8 +127,19 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
   const fieldSchema = item.itemType.fieldSchema as FieldSchema | null;
   const customFields = (item.customFields as CustomFieldValues) ?? {};
-  const primaryPhoto = item.photos.find((p) => p.isPrimary) ?? item.photos[0];
   const latestValuation = item.valuations[0];
+
+  // Resolve presigned URLs for photos
+  const { thumbnailUrls, fullUrls } = await resolvePhotoUrls(item.photos);
+
+  // Build gallery photo data
+  const galleryPhotos = item.photos.map((photo) => ({
+    id: photo.id,
+    caption: photo.caption,
+    isPrimary: photo.isPrimary,
+    thumbnailUrl: thumbnailUrls[photo.id] ?? null,
+    fullUrl: fullUrls[photo.id] ?? null,
+  }));
 
   // Group custom fields by their group
   const fieldGroups = fieldSchema?.fields
@@ -157,40 +190,8 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
       {/* Hero section */}
       <div className="grid gap-6 lg:grid-cols-[1fr_1fr]">
-        {/* Photo */}
-        <div className="space-y-3">
-          <div className="aspect-[4/3] overflow-hidden rounded-lg bg-muted">
-            {primaryPhoto ? (
-              <div className="flex size-full items-center justify-center">
-                {/* Photo rendered when storage is configured */}
-                <ImageOff className="size-12 text-muted-foreground/40" />
-              </div>
-            ) : (
-              <div className="flex size-full items-center justify-center">
-                <ImageOff className="size-12 text-muted-foreground/40" />
-              </div>
-            )}
-          </div>
-          {item.photos.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto">
-              {item.photos.slice(0, 6).map((photo) => (
-                <div
-                  key={photo.id}
-                  className="size-16 shrink-0 rounded-md bg-muted"
-                >
-                  <div className="flex size-full items-center justify-center">
-                    <ImageOff className="size-4 text-muted-foreground/40" />
-                  </div>
-                </div>
-              ))}
-              {item.photos.length > 6 && (
-                <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted text-sm text-muted-foreground">
-                  +{item.photos.length - 6}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+        {/* Photo gallery */}
+        <ItemGallery photos={galleryPhotos} />
 
         {/* Title + quick info */}
         <div className="space-y-4">
@@ -313,7 +314,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
           </TabsTrigger>
           <TabsTrigger value="photos">
             <Camera className="mr-1 size-3.5" />
-            Photos
+            Photos{item.photos.length > 0 ? ` (${item.photos.length})` : ''}
           </TabsTrigger>
           <TabsTrigger value="ai">
             <Sparkles className="mr-1 size-3.5" />
@@ -469,16 +470,13 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
           </Card>
         </TabsContent>
 
-        {/* Photos Tab — Placeholder */}
-        <TabsContent value="photos">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Camera className="size-10 text-muted-foreground/40" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                Photo gallery coming soon.
-              </p>
-            </CardContent>
-          </Card>
+        {/* Photos Tab — Gallery + Uploader */}
+        <TabsContent value="photos" className="space-y-6">
+          <PhotoUploader
+            itemId={id}
+            existingPhotos={item.photos}
+            thumbnailUrls={thumbnailUrls}
+          />
         </TabsContent>
 
         {/* AI Analysis Tab — Placeholder */}

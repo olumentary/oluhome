@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Camera } from 'lucide-react';
 import { requireAuth } from '@/lib/auth-helpers';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { ItemForm } from '@/components/items/item-form';
 import { getItemTypes, getRooms } from '../actions';
 
@@ -69,6 +70,16 @@ export default async function NewItemPage({ searchParams }: NewItemPageProps) {
         existingRooms={rooms}
         initialValues={initialValues}
       />
+
+      {/* Photo upload hint for new items */}
+      <Card>
+        <CardContent className="flex items-center gap-3 py-4">
+          <Camera className="size-5 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            Save the item first, then add photos from the edit page.
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }

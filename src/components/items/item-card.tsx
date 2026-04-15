@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import { ImageOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -13,7 +14,7 @@ interface ItemCardProps {
   room: string | null;
   condition: string | null;
   latestValue: string | null;
-  thumbnailKey: string | null;
+  thumbnailUrl: string | null;
 }
 
 const CONDITION_LABELS: Record<string, string> = {
@@ -32,17 +33,21 @@ export function ItemCard({
   room,
   condition,
   latestValue,
-  thumbnailKey,
+  thumbnailUrl,
 }: ItemCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Link href={`/items/${id}`}>
       <Card className="group overflow-hidden transition-shadow hover:shadow-md">
         <div className="aspect-[4/3] bg-muted">
-          {thumbnailKey ? (
-            <div className="flex size-full items-center justify-center text-xs text-muted-foreground">
-              {/* Photo rendered when storage is configured */}
-              <ImageOff className="size-8 text-muted-foreground/40" />
-            </div>
+          {thumbnailUrl && !imgError ? (
+            <img
+              src={thumbnailUrl}
+              alt={title}
+              onError={() => setImgError(true)}
+              className="size-full object-cover transition-transform group-hover:scale-105"
+            />
           ) : (
             <div className="flex size-full items-center justify-center">
               <ImageOff className="size-8 text-muted-foreground/40" />

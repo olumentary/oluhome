@@ -58,6 +58,7 @@ interface ItemRow {
   typeId: string;
   primaryPhotoKey: string | null;
   thumbnailKey: string | null;
+  thumbnailUrl: string | null;
   latestValue: string | null;
 }
 
@@ -84,6 +85,30 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
+// Thumbnail with error fallback
+// ---------------------------------------------------------------------------
+
+function Thumbnail({ src, alt }: { src: string | null; alt: string }) {
+  const [error, setError] = useState(false);
+  return (
+    <div className="size-10 overflow-hidden rounded bg-muted">
+      {src && !error ? (
+        <img
+          src={src}
+          alt={alt}
+          onError={() => setError(true)}
+          className="size-full object-cover"
+        />
+      ) : (
+        <div className="flex size-full items-center justify-center">
+          <ImageOff className="size-4 text-muted-foreground/40" />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Columns
 // ---------------------------------------------------------------------------
 
@@ -94,13 +119,7 @@ const columns: ColumnDef<ItemRow>[] = [
     size: 56,
     enableSorting: false,
     cell: ({ row }) => (
-      <div className="flex size-10 items-center justify-center rounded bg-muted">
-        {row.original.thumbnailKey ? (
-          <ImageOff className="size-4 text-muted-foreground/40" />
-        ) : (
-          <ImageOff className="size-4 text-muted-foreground/40" />
-        )}
-      </div>
+      <Thumbnail src={row.original.thumbnailUrl} alt={row.original.title} />
     ),
   },
   {
@@ -457,7 +476,7 @@ export function ItemsListClient({
               room={item.room}
               condition={item.condition}
               latestValue={item.latestValue}
-              thumbnailKey={item.thumbnailKey}
+              thumbnailUrl={item.thumbnailUrl}
             />
           ))}
         </div>

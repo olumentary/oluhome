@@ -27,6 +27,7 @@ import {
 } from '@/db/schema';
 import { itemFormSchema } from '@/lib/validators';
 import { generateDynamicSchema } from '@/lib/validators';
+import { deleteObjects, generatePresignedDownloadUrl } from '@/lib/storage';
 import type { FieldSchema, CustomFieldValues } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -67,6 +68,7 @@ export interface ItemsResult {
     typeId: string;
     primaryPhotoKey: string | null;
     thumbnailKey: string | null;
+    thumbnailUrl: string | null;
     latestValue: string | null;
   }>;
   nextCursor: string | null;
@@ -212,9 +214,26 @@ export async function getItems(filters: ItemsFilter): Promise<ItemsResult> {
     }
   }
 
+  // Resolve thumbnail presigned URLs (fall back to full-size if thumbnail missing)
+  const thumbnailUrlMap = new Map<string, string>();
+  await Promise.all(
+    pageItems.map(async (item) => {
+      const key = item.thumbnailKey || item.primaryPhotoKey;
+      if (key) {
+        try {
+          const url = await generatePresignedDownloadUrl(key);
+          thumbnailUrlMap.set(item.id, url);
+        } catch {
+          // Skip failed URL generation
+        }
+      }
+    }),
+  );
+
   // Optionally filter by value range (post-query since it joins valuations)
   let filteredItems = pageItems.map((item) => ({
     ...item,
+    thumbnailUrl: thumbnailUrlMap.get(item.id) ?? null,
     latestValue: valueMap.get(item.id) ?? null,
   }));
 
@@ -575,5 +594,154 @@ export async function deleteMeasurement(
     );
 
   revalidatePath(`/items/${itemId}`);
+  return { success: true };
+}
+
+// ---------------------------------------------------------------------------
+// Photo actions
+// ---------------------------------------------------------------------------
+
+export async function updatePhotoCaption(
+  photoId: string,
+  itemId: string,
+  caption: string,
+): Promise<ItemActionState> {
+  const user = await requireAuth();
+
+  const item = await db.query.collectionItems.findFirst({
+    where: and(
+      eq(collectionItems.id, itemId),
+      eq(collectionItems.userId, user.id),
+    ),
+    columns: { id: true },
+  });
+  if (!item) return { error: 'Item not found' };
+
+  await db
+    .update(itemPhotos)
+    .set({ caption: caption || null })
+    .where(
+      and(eq(itemPhotos.id, photoId), eq(itemPhotos.itemId, itemId)),
+    );
+
+  revalidatePath(`/items/${itemId}`);
+  return { success: true };
+}
+
+export async function setPrimaryPhoto(
+  photoId: string,
+  itemId: string,
+): Promise<ItemActionState> {
+  const user = await requireAuth();
+
+  const item = await db.query.collectionItems.findFirst({
+    where: and(
+      eq(collectionItems.id, itemId),
+      eq(collectionItems.userId, user.id),
+    ),
+    columns: { id: true },
+  });
+  if (!item) return { error: 'Item not found' };
+
+  await db
+    .update(itemPhotos)
+    .set({ isPrimary: false })
+    .where(eq(itemPhotos.itemId, itemId));
+
+  await db
+    .update(itemPhotos)
+    .set({ isPrimary: true })
+    .where(
+      and(eq(itemPhotos.id, photoId), eq(itemPhotos.itemId, itemId)),
+    );
+
+  revalidatePath(`/items/${itemId}`);
+  revalidatePath('/items');
+  return { success: true };
+}
+
+export async function reorderPhotos(
+  itemId: string,
+  orderedIds: string[],
+): Promise<ItemActionState> {
+  const user = await requireAuth();
+
+  const item = await db.query.collectionItems.findFirst({
+    where: and(
+      eq(collectionItems.id, itemId),
+      eq(collectionItems.userId, user.id),
+    ),
+    columns: { id: true },
+  });
+  if (!item) return { error: 'Item not found' };
+
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      db
+        .update(itemPhotos)
+        .set({ displayOrder: index })
+        .where(
+          and(eq(itemPhotos.id, id), eq(itemPhotos.itemId, itemId)),
+        ),
+    ),
+  );
+
+  revalidatePath(`/items/${itemId}`);
+  return { success: true };
+}
+
+export async function deletePhoto(
+  photoId: string,
+  itemId: string,
+): Promise<ItemActionState> {
+  const user = await requireAuth();
+
+  const item = await db.query.collectionItems.findFirst({
+    where: and(
+      eq(collectionItems.id, itemId),
+      eq(collectionItems.userId, user.id),
+    ),
+    columns: { id: true },
+  });
+  if (!item) return { error: 'Item not found' };
+
+  const photo = await db.query.itemPhotos.findFirst({
+    where: and(
+      eq(itemPhotos.id, photoId),
+      eq(itemPhotos.itemId, itemId),
+    ),
+  });
+  if (!photo) return { error: 'Photo not found' };
+
+  const keysToDelete = [photo.s3Key];
+  if (photo.thumbnailKey) keysToDelete.push(photo.thumbnailKey);
+  try {
+    await deleteObjects(keysToDelete);
+  } catch (err) {
+    console.error('S3 delete failed:', err);
+  }
+
+  await db
+    .delete(itemPhotos)
+    .where(
+      and(eq(itemPhotos.id, photoId), eq(itemPhotos.itemId, itemId)),
+    );
+
+  // If deleted photo was primary, promote the next one
+  if (photo.isPrimary) {
+    const nextPhoto = await db.query.itemPhotos.findFirst({
+      where: eq(itemPhotos.itemId, itemId),
+      orderBy: [asc(itemPhotos.displayOrder)],
+    });
+    if (nextPhoto) {
+      await db
+        .update(itemPhotos)
+        .set({ isPrimary: true })
+        .where(eq(itemPhotos.id, nextPhoto.id));
+    }
+  }
+
+  revalidatePath(`/items/${itemId}`);
+  revalidatePath('/items');
   return { success: true };
 }

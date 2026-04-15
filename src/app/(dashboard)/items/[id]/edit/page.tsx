@@ -1,12 +1,14 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, asc } from 'drizzle-orm';
 import { ChevronLeft } from 'lucide-react';
 import { requireAuth } from '@/lib/auth-helpers';
 import { db } from '@/db';
-import { collectionItems } from '@/db/schema';
+import { collectionItems, itemPhotos } from '@/db/schema';
+import { generatePresignedDownloadUrl } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import { ItemForm } from '@/components/items/item-form';
+import { PhotoUploader } from '@/components/items/photo-uploader';
 import { getItemTypes, getRooms } from '../../actions';
 import type { CustomFieldValues } from '@/types';
 
@@ -24,12 +26,31 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
         eq(collectionItems.id, id),
         eq(collectionItems.userId, user.id),
       ),
+      with: {
+        photos: {
+          orderBy: [asc(itemPhotos.displayOrder)],
+        },
+      },
     }),
     getItemTypes(),
     getRooms(),
   ]);
 
   if (!item) notFound();
+
+  // Resolve thumbnail URLs
+  const thumbnailUrls: Record<string, string> = {};
+  await Promise.all(
+    item.photos.map(async (photo) => {
+      try {
+        if (photo.thumbnailKey) {
+          thumbnailUrls[photo.id] = await generatePresignedDownloadUrl(photo.thumbnailKey);
+        }
+      } catch {
+        // Skip failed URL generation
+      }
+    }),
+  );
 
   const initialValues = {
     itemTypeId: item.itemTypeId,
@@ -81,6 +102,16 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
         existingRooms={rooms}
         initialValues={initialValues}
       />
+
+      {/* Photos section */}
+      <div className="space-y-3">
+        <h2 className="text-lg font-semibold text-foreground">Photos</h2>
+        <PhotoUploader
+          itemId={id}
+          existingPhotos={item.photos}
+          thumbnailUrls={thumbnailUrls}
+        />
+      </div>
     </div>
   );
 }
