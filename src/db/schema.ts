@@ -379,6 +379,9 @@ export const aiAnalyses = pgTable('ai_analyses', {
   analysisType: aiAnalysisTypeEnum('analysis_type').notNull(),
   promptUsed: text('prompt_used'),
   response: jsonb('response'),
+  messages: jsonb('messages').$type<
+    Array<{ role: 'user' | 'assistant'; content: string }>
+  >(),
   modelVersion: varchar('model_version', { length: 128 }),
   photoIds: text('photo_ids').array(),
   applied: boolean('applied').notNull().default(false),

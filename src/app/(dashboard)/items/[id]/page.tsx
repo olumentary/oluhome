@@ -14,6 +14,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { requireAuth } from '@/lib/auth-helpers';
+import { aiEnabled, aiBetaAccess } from '@/flags';
 import { db } from '@/db';
 import {
   collectionItems,
@@ -36,8 +37,10 @@ import { ItemGallery, PhotoGrid } from '@/components/items/item-gallery';
 import { PhotoUploader } from '@/components/items/photo-uploader';
 import { AcquisitionDisplay } from '@/components/items/acquisition-display';
 import { ValuationDisplay } from '@/components/items/valuation-display';
+import { AnalysisPanel } from '@/components/ai/analysis-panel';
 import { getItemAcquisitions } from '../acquisition-actions';
 import { getValuationHistory } from '../valuation-actions';
+import { getAnalysisHistory } from '../ai-actions';
 import type { FieldSchema, FieldDefinition, CustomFieldValues } from '@/types';
 
 // ---------------------------------------------------------------------------
@@ -131,11 +134,16 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
   if (!item) notFound();
 
-  // Fetch acquisitions and valuations in parallel
-  const [itemAcquisitions, itemValuations] = await Promise.all([
+  // Fetch acquisitions, valuations, AI flags, and analysis history in parallel
+  const [itemAcquisitions, itemValuations, aiFlag, betaFlag, analysisHistory] = await Promise.all([
     getItemAcquisitions(id),
     getValuationHistory(id),
+    aiEnabled(),
+    aiBetaAccess(),
+    getAnalysisHistory(id),
   ]);
+
+  const showAi = aiFlag || betaFlag;
 
   const fieldSchema = item.itemType.fieldSchema as FieldSchema | null;
   const customFields = (item.customFields as CustomFieldValues) ?? {};
@@ -325,10 +333,12 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
             <Camera className="mr-1 size-3.5" />
             Photos{item.photos.length > 0 ? ` (${item.photos.length})` : ''}
           </TabsTrigger>
-          <TabsTrigger value="ai">
-            <Sparkles className="mr-1 size-3.5" />
-            AI Analysis
-          </TabsTrigger>
+          {showAi && (
+            <TabsTrigger value="ai">
+              <Sparkles className="mr-1 size-3.5" />
+              AI Analysis
+            </TabsTrigger>
+          )}
         </TabsList>
 
         {/* Details Tab */}
@@ -474,17 +484,25 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
           />
         </TabsContent>
 
-        {/* AI Analysis Tab — Placeholder */}
-        <TabsContent value="ai">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <Sparkles className="size-10 text-muted-foreground/40" />
-              <p className="mt-3 text-sm text-muted-foreground">
-                AI analysis coming soon.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+        {/* AI Analysis Tab */}
+        {showAi && (
+          <TabsContent value="ai">
+            <AnalysisPanel
+              itemId={id}
+              photos={galleryPhotos}
+              item={{
+                period: item.period,
+                style: item.style,
+                originCountry: item.originCountry,
+                originRegion: item.originRegion,
+                makerAttribution: item.makerAttribution,
+                materials: item.materials,
+                condition: item.condition,
+              }}
+              analyses={analysisHistory}
+            />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

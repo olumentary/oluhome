@@ -106,3 +106,97 @@ export interface PlanCheckResult {
   limit: number;
   plan: string;
 }
+
+// ---------------------------------------------------------------------------
+// AI Analysis response types
+// ---------------------------------------------------------------------------
+
+export type AiAnalysisTypeKey = 'identify' | 'condition' | 'provenance' | 'value_estimate';
+
+export interface IdentifyResponse {
+  period: string;
+  dateRange: string;
+  style: string;
+  origin: { country: string; region?: string };
+  materials: string[];
+  makerAttribution: string | null;
+  confidence: 'low' | 'medium' | 'high';
+  comparables: Array<{ description: string; institution?: string }>;
+  notes: string;
+}
+
+export interface ConditionIssue {
+  area: string;
+  description: string;
+  severity: 'minor' | 'moderate' | 'significant';
+}
+
+export interface ConditionRestoration {
+  area: string;
+  description: string;
+  quality: string;
+}
+
+export interface ConditionResponse {
+  rating: 'excellent' | 'very_good' | 'good' | 'fair' | 'poor';
+  issues: ConditionIssue[];
+  restorations: ConditionRestoration[];
+  recommendations: string[];
+  overallNotes: string;
+}
+
+export interface ProvenanceMark {
+  type: string;
+  description: string;
+  location: string;
+}
+
+export interface ProvenanceResponse {
+  narrative: string;
+  identifiedMarks: ProvenanceMark[];
+  suggestedResearch: string[];
+}
+
+export interface ComparableSale {
+  description: string;
+  price: number;
+  venue?: string;
+  date?: string;
+}
+
+export interface ValueEstimateResponse {
+  estimatedRange: { low: number; high: number };
+  currency: 'USD';
+  basis: string;
+  comparablesSold: ComparableSale[];
+  marketNotes: string;
+  confidence: 'low' | 'medium' | 'high';
+}
+
+export type AiAnalysisResponse =
+  | IdentifyResponse
+  | ConditionResponse
+  | ProvenanceResponse
+  | ValueEstimateResponse;
+
+// ---------------------------------------------------------------------------
+// AI Conversation types
+// ---------------------------------------------------------------------------
+
+export interface ConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/** What the API returns for a single analysis turn */
+export interface AnalysisTurnResult {
+  analysisId: string;
+  /** null while the conversation is ongoing, populated when the model provides its final JSON */
+  response: AiAnalysisResponse | null;
+  /** The latest assistant message (conversational or final) */
+  assistantMessage: string;
+  /** Full conversation history (text only, no images) */
+  messages: ConversationMessage[];
+  /** true when the model has provided its final structured result */
+  complete: boolean;
+}
