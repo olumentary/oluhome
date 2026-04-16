@@ -13,7 +13,7 @@ function isPublicRoute(pathname: string): boolean {
   return false;
 }
 
-export default auth((req) => {
+export const proxy = auth((req) => {
   const { pathname } = req.nextUrl;
   const session = req.auth;
 
