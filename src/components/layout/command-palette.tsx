@@ -11,7 +11,8 @@ import {
   TrendingUp,
   Settings,
   Plus,
-  FileText,
+  Search,
+  Loader2,
 } from 'lucide-react';
 import {
   CommandDialog,
@@ -33,7 +34,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<
-    { id: string; title: string; room: string | null; period: string | null }[]
+    {
+      id: string;
+      title: string;
+      room: string | null;
+      period: string | null;
+      typeName?: string;
+      snippet?: string;
+    }[]
   >([]);
   const [isPending, startTransition] = useTransition();
 
@@ -49,7 +57,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open, onOpenChange]);
 
-  // Search items as user types
+  // Search items as user types (debounced 300ms)
   useEffect(() => {
     if (query.length < 2) {
       setResults([]);
@@ -60,7 +68,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
         const items = await searchItems(query);
         setResults(items);
       });
-    }, 200);
+    }, 300);
     return () => clearTimeout(timeout);
   }, [query]);
 
@@ -92,7 +100,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
       />
       <CommandList>
         <CommandEmpty>
-          {isPending ? 'Searching...' : 'No results found.'}
+          {isPending ? (
+            <span className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" />
+              Searching...
+            </span>
+          ) : (
+            'No results found.'
+          )}
         </CommandEmpty>
 
         {/* Search results */}
@@ -102,13 +117,27 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               <CommandItem
                 key={item.id}
                 onSelect={() => navigate(`/items/${item.id}`)}
+                className="flex flex-col items-start gap-1"
               >
-                <Package className="size-4" />
-                <span>{item.title}</span>
-                {item.room && (
-                  <span className="ml-auto text-xs text-muted-foreground">
-                    {item.room}
-                  </span>
+                <div className="flex w-full items-center gap-2">
+                  <Package className="size-4 shrink-0" />
+                  <span className="font-medium">{item.title}</span>
+                  {item.typeName && (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {item.typeName}
+                    </span>
+                  )}
+                  {!item.typeName && item.room && (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      {item.room}
+                    </span>
+                  )}
+                </div>
+                {item.snippet && (
+                  <span
+                    className="ml-6 text-xs text-muted-foreground line-clamp-1 [&_mark]:bg-primary/20 [&_mark]:text-foreground [&_mark]:rounded-sm [&_mark]:px-0.5"
+                    dangerouslySetInnerHTML={{ __html: item.snippet }}
+                  />
                 )}
               </CommandItem>
             ))}
@@ -156,7 +185,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 <Plus className="size-4" />
                 Add Item
               </CommandItem>
-              <CommandItem onSelect={() => navigate('/vendors?action=new')}>
+              <CommandItem onSelect={() => navigate('/vendors/new')}>
                 <Store className="size-4" />
                 Add Vendor
               </CommandItem>

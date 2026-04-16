@@ -717,9 +717,17 @@ export function PhotoUploader({ itemId, existingPhotos, thumbnailUrls: initialTh
       )}
 
       {photos.length === 0 && uploads.length === 0 && (
-        <p className="text-center text-sm text-muted-foreground">
-          No photos yet. Upload some to get started.
-        </p>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+            <Upload className="size-7 text-muted-foreground/60" />
+          </div>
+          <h3 className="mt-4 font-semibold text-foreground">
+            Upload photos of this piece
+          </h3>
+          <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+            Drag and drop photos above, or click the upload area to select files from your device.
+          </p>
+        </div>
       )}
     </div>
   );

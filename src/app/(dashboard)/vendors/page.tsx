@@ -39,16 +39,22 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
       />
 
       {vendorList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-16 text-center">
-          <Store className="size-10 text-muted-foreground/40" />
-          <h3 className="mt-3 font-semibold text-foreground">No vendors yet</h3>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-20 text-center">
+          <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+            <Store className="size-8 text-muted-foreground/60" />
+          </div>
+          <h3 className="mt-4 font-semibold text-foreground">
             {params.search || params.type
-              ? 'No vendors match your filters.'
-              : 'Add your first vendor to start tracking purchases.'}
+              ? 'No vendors match your filters'
+              : 'Add your first dealer or auction house'}
+          </h3>
+          <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+            {params.search || params.type
+              ? 'Try adjusting your search terms or clearing some filters.'
+              : 'Track who you buy from, their specialties, and your purchase history.'}
           </p>
           {!params.search && !params.type && (
-            <Button className="mt-4" asChild>
+            <Button className="mt-5" asChild>
               <Link href="/vendors/new">
                 <Plus className="size-4" />
                 Add Vendor

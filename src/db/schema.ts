@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 import {
   pgTable,
   pgEnum,
@@ -16,7 +16,15 @@ import {
   uniqueIndex,
   unique,
   primaryKey,
+  customType,
 } from 'drizzle-orm/pg-core';
+
+// Custom tsvector column type for full-text search
+const tsvector = customType<{ data: string }>({
+  dataType() {
+    return 'tsvector';
+  },
+});
 
 // ---------------------------------------------------------------------------
 // Enums
@@ -195,6 +203,7 @@ export const collectionItems = pgTable(
     notes: text('notes'),
     tags: text('tags').array(),
     status: itemStatusEnum('status').notNull().default('active'),
+    searchVector: tsvector('search_vector'),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -208,6 +217,10 @@ export const collectionItems = pgTable(
     index('collection_items_item_type_id_idx').on(table.itemTypeId),
     index('collection_items_room_idx').on(table.room),
     index('collection_items_status_idx').on(table.status),
+    index('collection_items_search_vector_idx').using(
+      'gin',
+      table.searchVector,
+    ),
   ],
 );
 

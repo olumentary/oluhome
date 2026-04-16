@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { CommandPalette } from '@/components/layout/command-palette';
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import {
   Sheet,
   SheetContent,
@@ -21,6 +23,27 @@ interface DashboardShellProps {
 export function DashboardShell({ user, counts, children }: DashboardShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+
+  // Global keyboard shortcuts
+  const shortcuts = useMemo(
+    () => [
+      {
+        key: 'n',
+        meta: true,
+        handler: () => {
+          // Cmd+N: new item (when on items/dashboard)
+          if (pathname === '/' || pathname.startsWith('/items')) {
+            router.push('/items/new');
+          }
+        },
+      },
+    ],
+    [pathname, router],
+  );
+
+  useKeyboardShortcuts(shortcuts);
 
   return (
     <div className="flex h-screen overflow-hidden">

@@ -192,12 +192,17 @@ export function ValuationDisplay({
   if (valuations.length === 0 && !showForm) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-          <TrendingUp className="size-10 text-muted-foreground/40" />
-          <p className="mt-3 text-sm text-muted-foreground">
-            No valuations recorded yet.
+        <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+            <TrendingUp className="size-7 text-muted-foreground/60" />
+          </div>
+          <h3 className="mt-4 font-semibold text-foreground">
+            Record your first valuation
+          </h3>
+          <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">
+            Track estimated, appraised, or insured values over time to monitor appreciation.
           </p>
-          <Button className="mt-4" onClick={() => setShowForm(true)}>
+          <Button className="mt-5" onClick={() => setShowForm(true)}>
             <Plus className="size-4" />
             Add Valuation
           </Button>

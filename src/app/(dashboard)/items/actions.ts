@@ -53,6 +53,7 @@ export interface ItemsFilter {
   sortDir?: 'asc' | 'desc';
   cursor?: string;
   limit?: number;
+  useFullText?: boolean;
 }
 
 export interface ItemsResult {
@@ -88,7 +89,13 @@ export async function getItems(filters: ItemsFilter): Promise<ItemsResult> {
   const conditions: SQL[] = [eq(collectionItems.userId, user.id)];
 
   if (filters.search) {
-    conditions.push(ilike(collectionItems.title, `%${filters.search}%`));
+    if (filters.useFullText) {
+      conditions.push(
+        sql`${collectionItems.searchVector} @@ plainto_tsquery('english', ${filters.search})`,
+      );
+    } else {
+      conditions.push(ilike(collectionItems.title, `%${filters.search}%`));
+    }
   }
   if (filters.typeId) {
     conditions.push(eq(collectionItems.itemTypeId, filters.typeId));

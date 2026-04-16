@@ -3,7 +3,10 @@ import {
   DollarSign,
   TrendingUp,
   Receipt,
+  BarChart3,
 } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 import { requireAuth } from '@/lib/auth-helpers';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -16,13 +19,15 @@ import {
   getSpendingOverTime,
   getVendorAnalysis,
 } from '@/lib/queries/analytics';
-import { ValueByRoomChart } from '@/components/analytics/value-by-room-chart';
-import { ValueTrendChart } from '@/components/analytics/value-trend-chart';
-import { CoverageGapCard } from '@/components/analytics/coverage-gap-card';
-import { CompositionCharts } from '@/components/analytics/composition-charts';
-import { TopItemsChart } from '@/components/analytics/top-items-chart';
-import { SpendingChart } from '@/components/analytics/spending-chart';
-import { VendorAnalysis } from '@/components/analytics/vendor-analysis';
+import {
+  LazyValueByRoomChart,
+  LazyValueTrendChart,
+  LazyCoverageGapCard,
+  LazyCompositionCharts,
+  LazyTopItemsChart,
+  LazySpendingChart,
+  LazyVendorAnalysis,
+} from '@/components/analytics/lazy-charts';
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -99,6 +104,37 @@ export default async function AnalyticsPage() {
     },
   ];
 
+  // Empty state when collection has no data
+  if (summary.totalItems === 0) {
+    return (
+      <div className="space-y-8">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Analytics</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Collection insights, value trends, and coverage analysis.
+          </p>
+        </div>
+        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed py-20 text-center">
+          <div className="flex size-16 items-center justify-center rounded-full bg-muted">
+            <BarChart3 className="size-8 text-muted-foreground/60" />
+          </div>
+          <h3 className="mt-4 font-semibold text-foreground">
+            Add more items and valuations to see insights
+          </h3>
+          <p className="mt-1.5 max-w-md text-sm text-muted-foreground">
+            Analytics become available once you have items with valuations in your collection. Start by adding pieces and recording their estimated values.
+          </p>
+          <Button className="mt-5" asChild>
+            <Link href="/items/new">
+              <Package className="size-4" />
+              Add your first item
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -130,10 +166,10 @@ export default async function AnalyticsPage() {
       </div>
 
       {/* Value by Room */}
-      <ValueByRoomChart data={valueByRoom} />
+      <LazyValueByRoomChart data={valueByRoom} />
 
       {/* Value Trend */}
-      <ValueTrendChart
+      <LazyValueTrendChart
         data={{
           monthly: trendMonthly,
           quarterly: trendQuarterly,
@@ -142,14 +178,14 @@ export default async function AnalyticsPage() {
       />
 
       {/* Coverage Gaps */}
-      <CoverageGapCard data={coverageGaps} />
+      <LazyCoverageGapCard data={coverageGaps} />
 
       {/* Composition */}
       <div>
         <h2 className="mb-4 text-lg font-semibold text-foreground">
           Collection Composition
         </h2>
-        <CompositionCharts
+        <LazyCompositionCharts
           byType={byType}
           byPeriod={byPeriod}
           byRoom={byRoom}
@@ -157,14 +193,14 @@ export default async function AnalyticsPage() {
         />
       </div>
 
-      {/* Top Items */}
-      <TopItemsChart data={topItems} />
-
-      {/* Spending Over Time */}
-      <SpendingChart data={spending} />
+      {/* Top Items + Spending — 2-col on desktop */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <LazyTopItemsChart data={topItems} />
+        <LazySpendingChart data={spending} />
+      </div>
 
       {/* Vendor Analysis */}
-      <VendorAnalysis data={vendorData} />
+      <LazyVendorAnalysis data={vendorData} />
     </div>
   );
 }

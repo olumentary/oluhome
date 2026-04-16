@@ -181,15 +181,15 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
   return (
     <div className="space-y-6">
       {/* Back + actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/items">
             <ChevronLeft className="size-4" />
             Collection
           </Link>
         </Button>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" asChild>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" asChild className="flex-1 sm:flex-none">
             <Link href={`/items/${id}/edit`}>
               <Pencil className="size-4" />
               Edit
@@ -307,7 +307,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
       {/* Tabbed content */}
       <Tabs defaultValue="details" className="space-y-4">
-        <TabsList>
+        <TabsList className="w-full overflow-x-auto justify-start">
           <TabsTrigger value="details">Details</TabsTrigger>
           <TabsTrigger value="measurements">
             <Ruler className="mr-1 size-3.5" />
