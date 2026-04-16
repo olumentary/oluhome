@@ -6,6 +6,7 @@ import { db } from '@/db';
 import { collectionItems, valuations, itemPhotos } from '@/db/schema';
 import { generatePresignedDownloadUrl } from '@/lib/storage';
 import { Card, CardContent } from '@/components/ui/card';
+import { ShareDialog } from '@/components/share/share-dialog';
 
 function formatCurrency(value: number): string {
   return new Intl.NumberFormat('en-US', {
@@ -131,11 +132,20 @@ export default async function RoomsPage() {
                   </div>
 
                   <CardContent className="pt-4">
-                    <div className="flex items-center gap-2">
-                      <Home className="size-4 text-muted-foreground" />
-                      <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                        {room.room}
-                      </h3>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2">
+                        <Home className="size-4 text-muted-foreground" />
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                          {room.room}
+                        </h3>
+                      </div>
+                      <div onClick={(e) => e.preventDefault()}>
+                        <ShareDialog
+                          scope="room"
+                          scopeId={room.room}
+                          scopeLabel={room.room}
+                        />
+                      </div>
                     </div>
                     <div className="mt-2 flex items-center gap-4 text-sm text-muted-foreground">
                       <span>

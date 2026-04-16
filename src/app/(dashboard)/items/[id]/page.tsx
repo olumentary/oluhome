@@ -4,8 +4,6 @@ import { eq, and, desc, asc } from 'drizzle-orm';
 import {
   ChevronLeft,
   Pencil,
-
-  Share2,
   Ruler,
   BookOpen,
   ShoppingBag,
@@ -32,6 +30,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { ItemDeleteButton } from '@/components/items/item-delete-button';
 import { PdfDropdown } from '@/components/items/pdf-dropdown';
+import { ShareDialog } from '@/components/share/share-dialog';
 import { MeasurementEditor } from '@/components/items/measurement-editor';
 import { ItemGallery, PhotoGrid } from '@/components/items/item-gallery';
 import { PhotoUploader } from '@/components/items/photo-uploader';
@@ -197,10 +196,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
             </Link>
           </Button>
           <PdfDropdown itemId={id} />
-          <Button variant="outline" size="sm" disabled>
-            <Share2 className="size-4" />
-            Share
-          </Button>
+          <ShareDialog scope="item" scopeId={id} scopeLabel={item.title} />
           <ItemDeleteButton itemId={id} itemTitle={item.title} />
         </div>
       </div>
