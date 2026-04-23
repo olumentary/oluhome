@@ -184,7 +184,7 @@ export function ItemGallery({ photos }: ItemGalleryProps) {
     return primaryIdx >= 0 ? primaryIdx : 0;
   });
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(photos.length > 1);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 

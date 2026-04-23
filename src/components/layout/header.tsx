@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, Plus, Sun, Moon, ChevronRight } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Button } from '@/components/ui/button';
+import { useBreadcrumbs } from '@/contexts/breadcrumb-context';
 
 interface HeaderProps {
   onMobileMenuToggle: () => void;
@@ -29,14 +30,25 @@ const breadcrumbLabels: Record<string, string> = {
 export function Header({ onMobileMenuToggle, onCommandPaletteOpen }: HeaderProps) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const { titles } = useBreadcrumbs();
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
   const segments = pathname.split('/').filter(Boolean);
   const crumbs = [
     { label: 'Home', href: '/' },
-    ...segments.map((seg, i) => ({
-      label: breadcrumbLabels[seg] ?? seg,
-      href: '/' + segments.slice(0, i + 1).join('/'),
-    })),
+    ...segments
+      .map((seg, i) => {
+        const staticLabel = breadcrumbLabels[seg];
+        const dynamicLabel = titles[seg];
+        // Suppress UUID segments until the page registers their title
+        if (!staticLabel && !dynamicLabel && UUID_RE.test(seg)) return null;
+        return {
+          label: dynamicLabel ?? staticLabel ?? seg,
+          href: '/' + segments.slice(0, i + 1).join('/'),
+        };
+      })
+      .filter((c): c is { label: string; href: string } => c !== null),
   ];
 
   return (
@@ -82,7 +94,7 @@ export function Header({ onMobileMenuToggle, onCommandPaletteOpen }: HeaderProps
       <Button
         variant="outline"
         size="sm"
-        className="hidden gap-2 text-muted-foreground sm:flex"
+        className="hidden w-64 justify-between gap-2 bg-card text-muted-foreground sm:flex"
         onClick={onCommandPaletteOpen}
       >
         Search...

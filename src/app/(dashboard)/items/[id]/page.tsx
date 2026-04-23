@@ -37,6 +37,7 @@ import { PhotoUploader } from '@/components/items/photo-uploader';
 import { AcquisitionDisplay } from '@/components/items/acquisition-display';
 import { ValuationDisplay } from '@/components/items/valuation-display';
 import { AnalysisPanel } from '@/components/ai/analysis-panel';
+import { BreadcrumbTitle } from '@/components/layout/breadcrumb-title';
 import { getItemAcquisitions } from '../acquisition-actions';
 import { getValuationHistory } from '../valuation-actions';
 import { getAnalysisHistory } from '../ai-actions';
@@ -65,9 +66,9 @@ const STATUS_LABELS: Record<string, string> = {
 function MetadataRow({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null;
   return (
-    <div className="flex justify-between py-2">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className="text-sm font-medium text-foreground">{value}</span>
+    <div className="py-1.5">
+      <span className="text-sm font-semibold text-foreground">{label}:</span>{' '}
+      <span className="text-sm text-muted-foreground">{value}</span>
     </div>
   );
 }
@@ -180,6 +181,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
 
   return (
     <div className="space-y-6">
+      <BreadcrumbTitle segment={id} title={item.title} />
       {/* Back + actions */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button variant="ghost" size="sm" asChild>
@@ -344,7 +346,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
             <CardHeader>
               <CardTitle className="text-base">Base Information</CardTitle>
             </CardHeader>
-            <CardContent className="divide-y">
+            <CardContent className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
               <MetadataRow label="Type" value={item.itemType.name} />
               <MetadataRow label="Period" value={item.period} />
               <MetadataRow label="Style" value={item.style} />
@@ -352,9 +354,9 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
               <MetadataRow label="Maker / Attribution" value={item.makerAttribution} />
               <MetadataRow label="Condition" value={item.condition ? CONDITION_LABELS[item.condition] : null} />
               {item.conditionNotes && (
-                <div className="py-2">
-                  <span className="text-sm text-muted-foreground">Condition Notes</span>
-                  <p className="mt-1 text-sm">{item.conditionNotes}</p>
+                <div className="py-1.5 sm:col-span-2">
+                  <span className="text-sm font-semibold text-foreground">Condition Notes:</span>
+                  <p className="mt-0.5 text-sm text-muted-foreground">{item.conditionNotes}</p>
                 </div>
               )}
               <MetadataRow label="Room" value={item.room} />
@@ -369,7 +371,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
               <CardHeader>
                 <CardTitle className="text-base">Overall Dimensions</CardTitle>
               </CardHeader>
-              <CardContent className="divide-y">
+              <CardContent className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
                 <MetadataRow label="Height" value={item.height ? `${item.height} in.` : null} />
                 <MetadataRow label="Width" value={item.width ? `${item.width} in.` : null} />
                 <MetadataRow label="Depth" value={item.depth ? `${item.depth} in.` : null} />
@@ -388,7 +390,7 @@ export default async function ItemDetailPage({ params }: ItemDetailPageProps) {
                 <CardHeader>
                   <CardTitle className="text-base">{groupName}</CardTitle>
                 </CardHeader>
-                <CardContent className="divide-y">
+                <CardContent className="grid gap-x-8 gap-y-0 sm:grid-cols-2">
                   {fields.map((field) => {
                     const value = customFields[field.key];
                     if (value == null) return null;

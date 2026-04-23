@@ -13,6 +13,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet';
 import type { AuthUser } from '@/lib/auth-helpers';
+import { BreadcrumbProvider } from '@/contexts/breadcrumb-context';
 
 interface DashboardShellProps {
   user: AuthUser;
@@ -46,6 +47,7 @@ export function DashboardShell({ user, counts, children }: DashboardShellProps) 
   useKeyboardShortcuts(shortcuts);
 
   return (
+    <BreadcrumbProvider>
     <div className="flex h-screen overflow-hidden">
       {/* Desktop sidebar */}
       <div className="hidden lg:block">
@@ -88,5 +90,6 @@ export function DashboardShell({ user, counts, children }: DashboardShellProps) 
       {/* Command palette */}
       <CommandPalette open={commandOpen} onOpenChange={setCommandOpen} />
     </div>
+    </BreadcrumbProvider>
   );
 }

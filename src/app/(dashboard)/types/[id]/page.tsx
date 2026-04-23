@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { collectionItemTypes } from '@/db/schema';
 import { Button } from '@/components/ui/button';
 import { TypeForm } from '@/components/types/type-form';
+import { BreadcrumbTitle } from '@/components/layout/breadcrumb-title';
 import type { FieldSchema } from '@/types';
 
 interface PageProps {
@@ -32,6 +33,7 @@ export default async function ItemTypeDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
+      <BreadcrumbTitle segment={id} title={itemType.name} />
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
           <Link href="/types">

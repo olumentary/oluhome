@@ -320,10 +320,16 @@ export function ItemsListClient({
     };
   }, [search]);
 
-  // Apply filters (resets to first page)
-  const applyFilters = useCallback(() => {
+  // Auto-fetch when dropdown filters change (skip initial mount)
+  const filtersMounted = useRef(false);
+  useEffect(() => {
+    if (!filtersMounted.current) {
+      filtersMounted.current = true;
+      return;
+    }
     fetchItems(undefined, true);
-  }, [fetchItems]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeId, roomFilter, conditionFilter, statusFilter]);
 
   // Pagination handlers
   function handleNextPage() {
@@ -415,7 +421,7 @@ export function ItemsListClient({
               />
             </div>
           </div>
-          <div className="flex items-center gap-1 rounded-md border p-0.5">
+          <div className="flex items-center gap-1 rounded-md border bg-card p-0.5">
             <Button
               variant={view === 'table' ? 'secondary' : 'ghost'}
               size="sm"
@@ -492,9 +498,21 @@ export function ItemsListClient({
             </SelectContent>
           </Select>
 
-          <Button variant="outline" size="sm" onClick={applyFilters} disabled={isPending}>
-            {isPending ? 'Loading...' : 'Apply'}
-          </Button>
+          {(typeId || roomFilter || conditionFilter || statusFilter) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setTypeId('');
+                setRoomFilter('');
+                setConditionFilter('');
+                setStatusFilter('');
+              }}
+            >
+              <X className="size-3.5" />
+              Reset
+            </Button>
+          )}
         </div>
       </div>
 

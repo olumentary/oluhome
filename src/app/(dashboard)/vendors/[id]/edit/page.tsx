@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { vendors } from '@/db/schema';
 import { Button } from '@/components/ui/button';
 import { VendorForm } from '@/components/vendors/vendor-form';
+import { BreadcrumbTitle } from '@/components/layout/breadcrumb-title';
 
 interface EditVendorPageProps {
   params: Promise<{ id: string }>;
@@ -24,6 +25,7 @@ export default async function EditVendorPage({ params }: EditVendorPageProps) {
 
   return (
     <div className="space-y-6">
+      <BreadcrumbTitle segment={id} title={vendor.name} />
       <div className="flex items-center gap-2">
         <Button variant="ghost" size="sm" asChild>
           <Link href={`/vendors/${id}`}>

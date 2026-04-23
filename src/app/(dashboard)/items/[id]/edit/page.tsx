@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ItemForm } from '@/components/items/item-form';
 import { PhotoUploader } from '@/components/items/photo-uploader';
 import { getItemTypes, getRooms } from '../../actions';
+import { BreadcrumbTitle } from '@/components/layout/breadcrumb-title';
 import type { CustomFieldValues } from '@/types';
 
 interface EditItemPageProps {
@@ -102,6 +103,7 @@ export default async function EditItemPage({ params }: EditItemPageProps) {
 
   return (
     <div className="space-y-6">
+      <BreadcrumbTitle segment={id} title={item.title} />
       <div className="flex items-center gap-3">
         <Button variant="ghost" size="sm" asChild>
           <Link href={`/items/${id}`}>

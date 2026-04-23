@@ -21,6 +21,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { VendorDeleteButton } from '@/components/vendors/vendor-delete-button';
 import { getVendorWithPurchaseHistory } from '../actions';
+import { BreadcrumbTitle } from '@/components/layout/breadcrumb-title';
 
 const VENDOR_TYPE_LABELS: Record<string, string> = {
   dealer: 'Dealer',
@@ -85,6 +86,7 @@ export default async function VendorDetailPage({
 
   return (
     <div className="space-y-6">
+      <BreadcrumbTitle segment={id} title={vendor.name} />
       {/* Back + actions */}
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="sm" asChild>
