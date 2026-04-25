@@ -21,14 +21,8 @@ export async function processUploadedPhoto(
   key: string,
   thumbKey: string,
 ): Promise<ImageMetadata> {
-  // Fetch original from S3
-  const response = await getObject(key);
-  const chunks: Uint8Array[] = [];
-  const stream = response.Body as AsyncIterable<Uint8Array>;
-  for await (const chunk of stream) {
-    chunks.push(chunk);
-  }
-  const originalBuffer = Buffer.concat(chunks);
+  // Fetch original from storage
+  const originalBuffer = await getObject(key);
 
   // Read metadata from original
   const metadata = await sharp(originalBuffer).metadata();

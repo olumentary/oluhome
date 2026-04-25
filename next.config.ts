@@ -6,6 +6,9 @@ const linodeHostname = linodeEndpoint
   : undefined;
 
 const nextConfig: NextConfig = {
+  // Produce a self-contained server bundle at .next/standalone/ for Docker.
+  // Ignored by `next start` during local dev on Vercel.
+  output: 'standalone',
   images: {
     remotePatterns: linodeHostname
       ? [

@@ -20,12 +20,20 @@ const identify = dedupe(async () => {
 });
 
 // Use Vercel adapter when FLAGS env var is present (Vercel deployments).
-// When missing (local dev / CI), flags fall back to decide() which returns
-// the defaultValue. Set FLAGS locally via `vercel env pull` to use dashboard values.
+// When missing (local dev, Docker, CI), flags read from OLUHOME_* env vars,
+// falling back to the defaultValue. This lets self-hosters enable/disable
+// features by setting env vars instead of managing a Vercel dashboard.
 const useVercel = !!process.env.FLAGS;
 
+function envBool(name: string, fallback: boolean): boolean {
+  const raw = process.env[name];
+  if (raw === 'true' || raw === '1') return true;
+  if (raw === 'false' || raw === '0') return false;
+  return fallback;
+}
+
 // ---------------------------------------------------------------------------
-// Flags — managed from Vercel project dashboard
+// Flags — managed from Vercel project dashboard (Vercel) or via env (self-host)
 // ---------------------------------------------------------------------------
 
 export const aiEnabled = flag<boolean>({
@@ -33,7 +41,9 @@ export const aiEnabled = flag<boolean>({
   description: 'Global kill switch for AI analysis features',
   defaultValue: false,
   identify,
-  ...(useVercel ? { adapter: vercelAdapter() } : { decide: () => false }),
+  ...(useVercel
+    ? { adapter: vercelAdapter() }
+    : { decide: () => envBool('OLUHOME_AI_ENABLED', false) }),
   options: [
     { value: true, label: 'Enabled' },
     { value: false, label: 'Disabled' },
@@ -45,7 +55,9 @@ export const aiBetaAccess = flag<boolean>({
   description: 'User-targeted AI access (use dashboard targeting rules)',
   defaultValue: false,
   identify,
-  ...(useVercel ? { adapter: vercelAdapter() } : { decide: () => false }),
+  ...(useVercel
+    ? { adapter: vercelAdapter() }
+    : { decide: () => envBool('OLUHOME_AI_BETA_ACCESS', false) }),
   options: [
     { value: true, label: 'Enabled' },
     { value: false, label: 'Disabled' },
@@ -57,7 +69,9 @@ export const registrationOpen = flag<boolean>({
   description: 'Controls public registration page visibility',
   defaultValue: false,
   identify,
-  ...(useVercel ? { adapter: vercelAdapter() } : { decide: () => false }),
+  ...(useVercel
+    ? { adapter: vercelAdapter() }
+    : { decide: () => envBool('OLUHOME_REGISTRATION_OPEN', false) }),
   options: [
     { value: true, label: 'Open' },
     { value: false, label: 'Closed' },
@@ -69,7 +83,9 @@ export const subscriptionsEnabled = flag<boolean>({
   description: 'Enables plan limit enforcement and billing UI',
   defaultValue: false,
   identify,
-  ...(useVercel ? { adapter: vercelAdapter() } : { decide: () => false }),
+  ...(useVercel
+    ? { adapter: vercelAdapter() }
+    : { decide: () => envBool('OLUHOME_SUBSCRIPTIONS_ENABLED', false) }),
   options: [
     { value: true, label: 'Enabled' },
     { value: false, label: 'Disabled' },

@@ -1,14 +1,14 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
 import { eq } from 'drizzle-orm';
 import { hash } from 'bcryptjs';
 import { users, collectionItemTypes, usageTracking } from './schema';
 import { DEFAULT_ITEM_TYPES } from './default-types';
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL! });
 const db = drizzle(pool);
 
 function parseArgs(): { email: string; password: string } {

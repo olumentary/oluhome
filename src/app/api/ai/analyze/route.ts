@@ -28,11 +28,9 @@ async function downloadPhotos(
   const results: Array<{ base64: string; mediaType: string }> = [];
   for (const photo of photos) {
     try {
-      const s3Response = await getObject(photo.s3Key);
-      const bodyBytes = await s3Response.Body?.transformToByteArray();
-      if (!bodyBytes) continue;
+      const bytes = await getObject(photo.s3Key);
       results.push({
-        base64: Buffer.from(bodyBytes).toString('base64'),
+        base64: bytes.toString('base64'),
         mediaType: MEDIA_TYPE_MAP[photo.contentType ?? 'image/jpeg'] ?? 'image/jpeg',
       });
     } catch (err) {

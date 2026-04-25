@@ -1,17 +1,18 @@
 import { config } from 'dotenv';
 config({ path: '.env.local' });
 
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
 import { eq } from 'drizzle-orm';
 import { users, collectionItemTypes, planLimits } from './schema';
 import { DEFAULT_ITEM_TYPES } from './default-types';
 
 // ---------------------------------------------------------------------------
 // DB connection (standalone script — not the singleton from index.ts)
+// Uses node-postgres; works against both local Postgres and Neon.
 // ---------------------------------------------------------------------------
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL! });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL! });
 const db = drizzle(pool);
 
 // ---------------------------------------------------------------------------
