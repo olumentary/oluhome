@@ -34,9 +34,16 @@ yarn-error.log*
 .env*
 !.env.sample
 
+# claude code local settings (may contain secrets)
+.claude/settings.local.json
+
+# MCP config (contains database credentials)
+.mcp.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+.env*.local
