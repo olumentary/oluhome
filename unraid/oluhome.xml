@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>OluHome</Name>
+  <Repository>ghcr.io/olumentary/oluhome:latest</Repository>
+  <Registry>https://ghcr.io/olumentary/oluhome</Registry>
+  <Branch>
+    <Tag>latest</Tag>
+    <TagDescription>Tracking the default branch — auto-updated on every push to main.</TagDescription>
+  </Branch>
+  <Network>bridge</Network>
+  <MyIP/>
+  <Shell>sh</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/olumentary/oluhome/issues</Support>
+  <Project>https://github.com/olumentary/oluhome</Project>
+  <Overview>OluHome is a self-hostable home-inventory and collection-management app. Track items, rooms, photos, valuations, vendors, and acquisitions. Generate PDFs, share read-only links, and (optionally) get AI-assisted item analysis.&#xD;
+&#xD;
+This container ships the OluHome web app only. It requires an external PostgreSQL 14+ database — install the official "postgres" or "postgresql" template from Community Applications first, or point DATABASE_URL at any reachable Postgres instance.&#xD;
+&#xD;
+On first launch, the container automatically runs database migrations and (if BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD are set) creates an admin user. Subsequent launches are idempotent.&#xD;
+&#xD;
+For a fully bundled install (app + Postgres + uploads volume in one stack), use the Docker Compose Manager plugin with the project's docker-compose.prod.yml instead.</Overview>
+  <Category>Productivity: HomeAutomation: Tools:</Category>
+  <WebUI>http://[IP]:[PORT:3000]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/olumentary/oluhome/main/unraid/oluhome.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/olumentary/oluhome/main/unraid/oluhome-icon.png</Icon>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Requires>An external PostgreSQL 14+ database. Install one from CA (e.g. linuxserver/postgres, official postgres) before launching, or point DATABASE_URL at any reachable instance.</Requires>
+  <Description>Self-hostable home-inventory + collection management. See the Overview tab for full setup notes. Required at install: DATABASE_URL, AUTH_SECRET, APP_URL, and the BOOTSTRAP_ADMIN_* fields for first-time admin creation.</Description>
+
+  <Config Name="WebUI Port" Target="3000" Default="3000" Mode="tcp"
+    Description="Host port the web UI is reachable on. Container always listens on 3000."
+    Type="Port" Display="always" Required="true" Mask="false">3000</Config>
+
+  <Config Name="Uploads" Target="/app/data/uploads" Default="/mnt/user/appdata/oluhome/uploads" Mode="rw"
+    Description="Where item photos, receipts, and other uploads are stored on the array. Back this up alongside your database."
+    Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/oluhome/uploads</Config>
+
+  <Config Name="DATABASE_URL" Target="DATABASE_URL" Default="postgres://oluhome:CHANGE_ME@192.168.1.10:5432/oluhome" Mode=""
+    Description="Postgres connection string. Format: postgres://USER:PASSWORD@HOST:PORT/DB. HOST is the Postgres container's name on the docker network or its IP. Append ?sslmode=require if your Postgres requires TLS."
+    Type="Variable" Display="always" Required="true" Mask="true"></Config>
+
+  <Config Name="APP_URL" Target="APP_URL" Default="http://YOUR-UNRAID-IP:3000" Mode=""
+    Description="Public URL users reach the app at, including scheme. Used for NextAuth callbacks and embedded in signed file URLs. If you put OluHome behind a reverse proxy with HTTPS, use that URL (e.g. https://oluhome.example.com). AUTH_URL and NEXT_PUBLIC_APP_URL are derived from this automatically."
+    Type="Variable" Display="always" Required="true" Mask="false"></Config>
+
+  <Config Name="AUTH_SECRET" Target="AUTH_SECRET" Default="" Mode=""
+    Description="Random 32+ byte secret used to sign session cookies and file-access tokens. Generate with: openssl rand -base64 32. CHANGING THIS LOGS OUT EVERY USER and invalidates outstanding upload/download URLs (existing files are unaffected)."
+    Type="Variable" Display="always" Required="true" Mask="true"></Config>
+
+  <Config Name="BOOTSTRAP_ADMIN_EMAIL" Target="BOOTSTRAP_ADMIN_EMAIL" Default="" Mode=""
+    Description="Email for the auto-created admin user. Only used on first boot — if the user already exists, creation is skipped (the password is NOT rotated). Safe to clear after first launch."
+    Type="Variable" Display="always" Required="false" Mask="false"></Config>
+
+  <Config Name="BOOTSTRAP_ADMIN_PASSWORD" Target="BOOTSTRAP_ADMIN_PASSWORD" Default="" Mode=""
+    Description="Password for the auto-created admin user. Only used on first boot. Safe to clear after first launch — change the password from inside the app afterwards."
+    Type="Variable" Display="always" Required="false" Mask="true"></Config>
+
+  <Config Name="BOOTSTRAP_ADMIN_NAME" Target="BOOTSTRAP_ADMIN_NAME" Default="Admin" Mode=""
+    Description="Display name for the auto-created admin user."
+    Type="Variable" Display="advanced" Required="false" Mask="false">Admin</Config>
+
+  <Config Name="DB_DRIVER" Target="DB_DRIVER" Default="node-postgres" Mode=""
+    Description="Postgres driver. Leave as 'node-postgres' for self-hosted Postgres. Set to 'neon-serverless' only if pointing DATABASE_URL at Neon's WebSocket endpoint."
+    Type="Variable" Display="advanced" Required="false" Mask="false">node-postgres</Config>
+
+  <Config Name="STORAGE_DRIVER" Target="STORAGE_DRIVER" Default="local" Mode=""
+    Description="File storage backend. 'local' uses the Uploads volume above. 's3' switches to AWS S3 / Linode Object Storage and requires LINODE_* env vars (add them via the Add another Path, Port, Variable, Label or Device button)."
+    Type="Variable" Display="advanced" Required="false" Mask="false">local</Config>
+
+  <Config Name="STORAGE_LOCAL_DIR" Target="STORAGE_LOCAL_DIR" Default="/app/data/uploads" Mode=""
+    Description="Filesystem path inside the container where uploads are written. Must match the container side of the Uploads volume mapping."
+    Type="Variable" Display="advanced" Required="false" Mask="false">/app/data/uploads</Config>
+
+  <Config Name="OLUHOME_REGISTRATION_OPEN" Target="OLUHOME_REGISTRATION_OPEN" Default="true" Mode=""
+    Description="When true, the public /register page is enabled so additional users can sign up. Set to false for single-user / household-only installs."
+    Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
+
+  <Config Name="OLUHOME_AI_ENABLED" Target="OLUHOME_AI_ENABLED" Default="false" Mode=""
+    Description="Enables the AI item-analysis feature globally (identify, condition, provenance, value estimate). Requires ANTHROPIC_API_KEY to be set."
+    Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+
+  <Config Name="OLUHOME_AI_BETA_ACCESS" Target="OLUHOME_AI_BETA_ACCESS" Default="false" Mode=""
+    Description="Per-user AI access flag. Either OLUHOME_AI_ENABLED or this must be true for any user to access AI features."
+    Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+
+  <Config Name="OLUHOME_SUBSCRIPTIONS_ENABLED" Target="OLUHOME_SUBSCRIPTIONS_ENABLED" Default="false" Mode=""
+    Description="Enables plan-limit enforcement and the billing UI. Self-hosters typically leave this off — set to false."
+    Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
+
+  <Config Name="ANTHROPIC_API_KEY" Target="ANTHROPIC_API_KEY" Default="" Mode=""
+    Description="Anthropic API key for the AI analysis feature. Only needed when OLUHOME_AI_ENABLED=true. Format: sk-ant-..."
+    Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
+</Container>
