@@ -7,11 +7,16 @@ Also read `AGENTS.md` in this directory for setup, architecture, conventions, st
 - `pnpm dev` — dev server (port 3000)
 - `pnpm build` — production build, catches type errors
 - `pnpm lint` — ESLint
-- `pnpm drizzle-kit push` — push schema to Neon
-- `pnpm drizzle-kit generate` — generate migration SQL
+- `pnpm drizzle-kit generate` — **REQUIRED for every schema change** (writes SQL + journal + snapshot)
+- `pnpm drizzle-kit push` — local-only experimentation; never use after a schema change
 - `pnpm drizzle-kit studio` — visual DB browser
+- `pnpm tsx src/db/migrate.ts` — apply pending migrations against `DATABASE_URL`
 - `pnpm tsx src/db/seed.ts` — seed reference data
 - `pnpm tsx src/db/create-admin.ts --email=... --password=...` — create admin user
+
+## Schema changes — non-negotiable
+
+Every edit to `src/db/schema.ts` must be paired with `pnpm drizzle-kit generate --name=<descriptor>` in the same commit. That writes the SQL file, the snapshot, and the journal entry — all three must be committed together. Self-hosted Docker installs apply schema strictly through the migrator; anything missing from the migration files is invisible to them and produces `column does not exist` errors at runtime. `drizzle-kit push` is fine for throwaway local experimentation, never after that point. To detect drift: `pnpm drizzle-kit generate --name=check` — empty result means schema matches migrations. See AGENTS.md "Database schema changes" for the full workflow.
 
 ## Key Patterns
 
