@@ -15,6 +15,13 @@
       "when": 1777680000000,
       "tag": "0001_full_text_search",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777171893476,
+      "tag": "0002_catchup_schema_drift",
+      "breakpoints": true
     }
   ]
 }

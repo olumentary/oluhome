@@ -7,11 +7,13 @@ Multi-tenant SaaS for antique and decorative arts collection management. Next.js
 ```bash
 pnpm install
 cp .env.example .env.local          # then fill in credentials
-pnpm drizzle-kit push               # push schema to Neon
+pnpm tsx src/db/migrate.ts          # apply migrations to a fresh DB
 pnpm tsx src/db/seed.ts              # seed plan_limits + default item types
 pnpm tsx src/db/create-admin.ts --email=admin@example.com --password=changeme
 pnpm dev                             # http://localhost:3000
 ```
+
+(For first-time onboarding against a throwaway local DB you can substitute `pnpm drizzle-kit push` for the migrate step — but see "Database schema changes" below: never use `push` after that point.)
 
 ## Commands
 
@@ -19,10 +21,11 @@ pnpm dev                             # http://localhost:3000
 pnpm dev                             # Next.js dev server, port 3000
 pnpm build                           # production build — catches all type errors
 pnpm lint                            # ESLint
-pnpm drizzle-kit push                # push schema to database
-pnpm drizzle-kit generate            # generate migration SQL
+pnpm drizzle-kit generate            # REQUIRED for every schema change — writes SQL + journal
+pnpm drizzle-kit push                # local-only experimentation; never use after a schema change
 pnpm drizzle-kit studio              # visual DB browser at local.drizzle.studio
 pnpm tsx src/db/seed.ts              # re-seed reference data
+pnpm tsx src/db/migrate.ts           # apply pending migrations against DATABASE_URL
 ```
 
 ## Architecture
@@ -51,6 +54,23 @@ Full architecture doc: `docs/oluhome-architecture.md`
 - Every data query must include a `WHERE user_id = ?` clause scoped to the authenticated user. This is the multi-tenancy contract. Use `requireAuth()` from `src/lib/auth-helpers.ts` to get the session user, then pass `userId` to all query functions. No exceptions.
 - Forms: React Hook Form + Zod. Base item schema is static; custom fields generate a dynamic Zod schema at runtime via `generateDynamicSchema()` in `src/lib/validators.ts`.
 - Custom item fields: `collection_item_types.field_schema` (JSONB) defines the schema; `collection_items.custom_fields` (JSONB) stores values.
+
+### Database schema changes
+
+**Every schema change in `src/db/schema.ts` must be accompanied by a generated migration.** Self-hosted (Docker) installs apply schema strictly through Drizzle's migrator at container boot — anything missing from `src/db/migrations/` (and `meta/_journal.json`) is invisible to those installs and produces "column does not exist" errors at runtime.
+
+Workflow:
+
+1. Edit `src/db/schema.ts`.
+2. Run `pnpm drizzle-kit generate --name=<short_descriptor>`. This writes a new `NNNN_<name>.sql`, a matching `meta/NNNN_snapshot.json`, and appends an entry to `meta/_journal.json` — all three must be committed together.
+3. Verify locally: `pnpm tsx src/db/migrate.ts` against a fresh DB. Then check the schema: `pnpm drizzle-kit studio`.
+4. Commit schema + migration + journal in the same commit.
+
+`drizzle-kit push` is reserved for local-only experimentation against a throwaway DB. **Never run `push` against a database whose schema other people or the production migrator depend on** — it sync-applies schema directly, bypassing the journal, and produces drift that surfaces as runtime errors on every fresh install.
+
+Hand-written migrations (triggers, functions, custom SQL drizzle can't generate) must still be created via `pnpm drizzle-kit generate --custom --name=<name>` so the journal entry and snapshot are produced. Add `--> statement-breakpoint` between top-level statements; the migrator splits on those markers.
+
+To detect drift at any point: `pnpm drizzle-kit generate --name=check` against the current schema. An empty (or skipped) migration means the migration files match the schema. Any SQL produced is the gap — keep it (rename to `--name=<descriptive>`) and commit, or revert the schema change if unintended.
 - S3 keys namespaced by user: `{userId}/items/{itemId}/photos/{photoId}/{filename}`
 - Feature flags: Vercel Flags SDK (`flags/next`). All flags in `src/flags.ts`. Evaluate server-side only. Pass resolved booleans to client components as props, never the flag function.
 - shadcn/ui components in `src/components/ui/`. Never modify these directly — extend via wrapper components.
