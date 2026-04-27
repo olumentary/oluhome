@@ -50,7 +50,10 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-RUN addgroup --system --gid 1001 nodejs \
+# su-exec lets the entrypoint drop privileges from root → nextjs after fixing
+# bind-mount ownership at boot (Unraid mounts come in as 99:100, not 1001).
+RUN apk add --no-cache su-exec \
+ && addgroup --system --gid 1001 nodejs \
  && adduser --system --uid 1001 nextjs
 
 # Next.js standalone output: server.js + the traced subset of node_modules
@@ -69,7 +72,9 @@ RUN chmod +x ./entrypoint.sh
 # Default upload volume target (bind-mounted by docker-compose)
 RUN mkdir -p /app/data/uploads && chown -R nextjs:nodejs /app/data
 
-USER nextjs
+# Container starts as root so the entrypoint can chown the bind-mounted
+# /app/data volume; entrypoint then drops to nextjs via su-exec before
+# running bootstrap.cjs and the Next.js server.
 
 EXPOSE 3000
 
