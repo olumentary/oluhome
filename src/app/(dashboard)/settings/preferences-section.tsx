@@ -20,21 +20,21 @@ function getStoredValue(key: string, fallback: string): string {
 
 export function PreferencesSection() {
   const [measurementUnit, setMeasurementUnit] = useState(() =>
-    getStoredValue('oluhome-measurement-unit', 'inches'),
+    getStoredValue('curiolu-measurement-unit', 'inches'),
   );
   const [itemsPerPage, setItemsPerPage] = useState(() =>
-    getStoredValue('oluhome-items-per-page', '24'),
+    getStoredValue('curiolu-items-per-page', '24'),
   );
 
   function handleUnitChange(value: string) {
     setMeasurementUnit(value);
-    localStorage.setItem('oluhome-measurement-unit', value);
+    localStorage.setItem('curiolu-measurement-unit', value);
     toast.success('Measurement unit updated');
   }
 
   function handlePerPageChange(value: string) {
     setItemsPerPage(value);
-    localStorage.setItem('oluhome-items-per-page', value);
+    localStorage.setItem('curiolu-items-per-page', value);
     toast.success('Items per page updated');
   }
 

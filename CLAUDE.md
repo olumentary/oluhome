@@ -1,4 +1,4 @@
-# OluHome
+# Curiolu
 
 Also read `AGENTS.md` in this directory for setup, architecture, conventions, styling, and constraints. This file contains Claude Code-specific additions only.
 
@@ -36,7 +36,7 @@ Selection is runtime-only — the same codebase runs either. See `README.docker.
 
 - **DB driver**: `src/db/index.ts` picks `neon-serverless` (Vercel) or `node-postgres` (Docker) via `DB_DRIVER` env var or hostname sniff (`.neon.tech`).
 - **Storage driver**: `src/lib/storage/index.ts` picks `s3` (Linode, default) or `local` (filesystem + signed `/api/files/...` route) via `STORAGE_DRIVER`.
-- **Flags**: when `FLAGS` env absent, `src/flags.ts` reads `OLUHOME_*` env vars instead of calling the Vercel adapter. Defaults match Vercel behavior.
+- **Flags**: when `FLAGS` env absent, `src/flags.ts` reads `CURIOLU_*` env vars instead of calling the Vercel adapter. Defaults match Vercel behavior.
 - **Boot-time bootstrap**: `src/db/bootstrap.ts` (compiled to `bootstrap.cjs` in the Docker image) runs migrations, seeds `plan_limits`, and optionally creates an admin from `BOOTSTRAP_ADMIN_EMAIL`/`BOOTSTRAP_ADMIN_PASSWORD` — all idempotent.
 
 ## Gotchas

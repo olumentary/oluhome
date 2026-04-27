@@ -71,7 +71,7 @@ export function Sidebar({ user, counts, mobile, onNavigate }: SidebarProps) {
           onClick={onNavigate}
           className="text-xl font-bold text-white"
         >
-          OluHome
+          curiolu
         </Link>
       </div>
 

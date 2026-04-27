@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <Container version="2">
-  <Name>OluHome</Name>
-  <Repository>ghcr.io/olumentary/oluhome:latest</Repository>
-  <Registry>https://ghcr.io/olumentary/oluhome</Registry>
+  <Name>Curiolu</Name>
+  <Repository>ghcr.io/olumentary/curiolu:latest</Repository>
+  <Registry>https://ghcr.io/olumentary/curiolu</Registry>
   <Branch>
     <Tag>latest</Tag>
     <TagDescription>Tracking the default branch — auto-updated on every push to main.</TagDescription>
@@ -11,19 +11,19 @@
   <MyIP/>
   <Shell>sh</Shell>
   <Privileged>false</Privileged>
-  <Support>https://github.com/olumentary/oluhome/issues</Support>
-  <Project>https://github.com/olumentary/oluhome</Project>
-  <Overview>OluHome is a self-hostable home-inventory and collection-management app. Track items, rooms, photos, valuations, vendors, and acquisitions. Generate PDFs, share read-only links, and (optionally) get AI-assisted item analysis.&#xD;
+  <Support>https://github.com/olumentary/curiolu/issues</Support>
+  <Project>https://github.com/olumentary/curiolu</Project>
+  <Overview>Curiolu is a self-hostable home-inventory and collection-management app. Track items, rooms, photos, valuations, vendors, and acquisitions. Generate PDFs, share read-only links, and (optionally) get AI-assisted item analysis.&#xD;
 &#xD;
-This container ships the OluHome web app only. It requires an external PostgreSQL 14+ database — install the official "postgres" or "postgresql" template from Community Applications first, or point DATABASE_URL at any reachable Postgres instance.&#xD;
+This container ships the Curiolu web app only. It requires an external PostgreSQL 14+ database — install the official "postgres" or "postgresql" template from Community Applications first, or point DATABASE_URL at any reachable Postgres instance.&#xD;
 &#xD;
 On first launch, the container automatically runs database migrations and (if BOOTSTRAP_ADMIN_EMAIL and BOOTSTRAP_ADMIN_PASSWORD are set) creates an admin user. Subsequent launches are idempotent.&#xD;
 &#xD;
 For a fully bundled install (app + Postgres + uploads volume in one stack), use the Docker Compose Manager plugin with the project's docker-compose.prod.yml instead.</Overview>
   <Category>Productivity: HomeAutomation: Tools:</Category>
   <WebUI>http://[IP]:[PORT:3000]/</WebUI>
-  <TemplateURL>https://raw.githubusercontent.com/olumentary/oluhome/main/unraid/oluhome.xml</TemplateURL>
-  <Icon>https://raw.githubusercontent.com/olumentary/oluhome/main/unraid/oluhome-icon.png</Icon>
+  <TemplateURL>https://raw.githubusercontent.com/olumentary/curiolu/main/unraid/curiolu.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/olumentary/curiolu/main/unraid/curiolu-icon.png</Icon>
   <ExtraParams>--restart=unless-stopped</ExtraParams>
   <PostArgs/>
   <CPUset/>
@@ -37,16 +37,16 @@ For a fully bundled install (app + Postgres + uploads volume in one stack), use 
     Description="Host port the web UI is reachable on. Container always listens on 3000."
     Type="Port" Display="always" Required="true" Mask="false">3000</Config>
 
-  <Config Name="Uploads" Target="/app/data/uploads" Default="/mnt/user/appdata/oluhome/uploads" Mode="rw"
+  <Config Name="Uploads" Target="/app/data/uploads" Default="/mnt/user/appdata/curiolu/uploads" Mode="rw"
     Description="Where item photos, receipts, and other uploads are stored on the array. Back this up alongside your database."
-    Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/oluhome/uploads</Config>
+    Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/curiolu/uploads</Config>
 
-  <Config Name="DATABASE_URL" Target="DATABASE_URL" Default="postgres://oluhome:CHANGE_ME@192.168.1.10:5432/oluhome" Mode=""
+  <Config Name="DATABASE_URL" Target="DATABASE_URL" Default="postgres://curiolu:CHANGE_ME@192.168.1.10:5432/curiolu" Mode=""
     Description="Postgres connection string. Format: postgres://USER:PASSWORD@HOST:PORT/DB. HOST is the Postgres container's name on the docker network or its IP. Append ?sslmode=require if your Postgres requires TLS."
     Type="Variable" Display="always" Required="true" Mask="true"></Config>
 
   <Config Name="APP_URL" Target="APP_URL" Default="http://YOUR-UNRAID-IP:3000" Mode=""
-    Description="Public URL users reach the app at. MUST include the scheme (http:// or https://) — e.g. https://oluhome.example.com or http://192.168.1.10:3000. Used for NextAuth callbacks and embedded in signed file URLs. If you put OluHome behind a reverse proxy with HTTPS, use the public HTTPS URL here, NOT the internal LAN/Tailscale URL. AUTH_URL and NEXT_PUBLIC_APP_URL are derived from this automatically. The container will refuse to start if the scheme is missing."
+    Description="Public URL users reach the app at. MUST include the scheme (http:// or https://) — e.g. https://curiolu.example.com or http://192.168.1.10:3000. Used for NextAuth callbacks and embedded in signed file URLs. If you put Curiolu behind a reverse proxy with HTTPS, use the public HTTPS URL here, NOT the internal LAN/Tailscale URL. AUTH_URL and NEXT_PUBLIC_APP_URL are derived from this automatically. The container will refuse to start if the scheme is missing."
     Type="Variable" Display="always" Required="true" Mask="false"></Config>
 
   <Config Name="AUTH_SECRET" Target="AUTH_SECRET" Default="" Mode=""
@@ -77,23 +77,23 @@ For a fully bundled install (app + Postgres + uploads volume in one stack), use 
     Description="Filesystem path inside the container where uploads are written. Must match the container side of the Uploads volume mapping."
     Type="Variable" Display="advanced" Required="false" Mask="false">/app/data/uploads</Config>
 
-  <Config Name="OLUHOME_REGISTRATION_OPEN" Target="OLUHOME_REGISTRATION_OPEN" Default="true" Mode=""
+  <Config Name="CURIOLU_REGISTRATION_OPEN" Target="CURIOLU_REGISTRATION_OPEN" Default="true" Mode=""
     Description="When true, the public /register page is enabled so additional users can sign up. Set to false for single-user / household-only installs."
     Type="Variable" Display="advanced" Required="false" Mask="false">true</Config>
 
-  <Config Name="OLUHOME_AI_ENABLED" Target="OLUHOME_AI_ENABLED" Default="false" Mode=""
+  <Config Name="CURIOLU_AI_ENABLED" Target="CURIOLU_AI_ENABLED" Default="false" Mode=""
     Description="Enables the AI item-analysis feature globally (identify, condition, provenance, value estimate). Requires ANTHROPIC_API_KEY to be set."
     Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
 
-  <Config Name="OLUHOME_AI_BETA_ACCESS" Target="OLUHOME_AI_BETA_ACCESS" Default="false" Mode=""
-    Description="Per-user AI access flag. Either OLUHOME_AI_ENABLED or this must be true for any user to access AI features."
+  <Config Name="CURIOLU_AI_BETA_ACCESS" Target="CURIOLU_AI_BETA_ACCESS" Default="false" Mode=""
+    Description="Per-user AI access flag. Either CURIOLU_AI_ENABLED or this must be true for any user to access AI features."
     Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
 
-  <Config Name="OLUHOME_SUBSCRIPTIONS_ENABLED" Target="OLUHOME_SUBSCRIPTIONS_ENABLED" Default="false" Mode=""
+  <Config Name="CURIOLU_SUBSCRIPTIONS_ENABLED" Target="CURIOLU_SUBSCRIPTIONS_ENABLED" Default="false" Mode=""
     Description="Enables plan-limit enforcement and the billing UI. Self-hosters typically leave this off — set to false."
     Type="Variable" Display="advanced" Required="false" Mask="false">false</Config>
 
   <Config Name="ANTHROPIC_API_KEY" Target="ANTHROPIC_API_KEY" Default="" Mode=""
-    Description="Anthropic API key for the AI analysis feature. Only needed when OLUHOME_AI_ENABLED=true. Format: sk-ant-..."
+    Description="Anthropic API key for the AI analysis feature. Only needed when CURIOLU_AI_ENABLED=true. Format: sk-ant-..."
     Type="Variable" Display="advanced" Required="false" Mask="true"></Config>
 </Container>

@@ -1,6 +1,6 @@
-# Self-hosting OluHome with Docker
+# Self-hosting Curiolu with Docker
 
-OluHome ships with a Docker setup that runs the whole app — Next.js, Postgres,
+Curiolu ships with a Docker setup that runs the whole app — Next.js, Postgres,
 and local file storage — with `docker compose up`. No cloud services required.
 
 ## Prerequisites
@@ -36,7 +36,7 @@ Open `http://localhost:3000` and sign in with the admin credentials from `.env`.
 | Database       | Neon (`@neondatabase/serverless`) | Postgres 16 in a sibling service  |
 | File storage   | Linode Object Storage (S3)        | Local filesystem volume           |
 | File URLs      | S3 presigned                      | HMAC-signed `/api/files/...` URLs |
-| Feature flags  | Vercel Flags dashboard            | `OLUHOME_*` env vars              |
+| Feature flags  | Vercel Flags dashboard            | `CURIOLU_*` env vars              |
 | Admin creation | Manual CLI command                | Auto on first boot (env-driven)   |
 
 The same codebase supports both. Driver selection happens at process start:
@@ -51,7 +51,7 @@ The same codebase supports both. Driver selection happens at process start:
 
 ```sh
 # Back up the DB
-docker compose exec db pg_dump -U oluhome oluhome > backup.sql
+docker compose exec db pg_dump -U curiolu curiolu > backup.sql
 
 # Back up uploads
 tar czf uploads.tar.gz ./data/uploads
@@ -126,15 +126,15 @@ Compose Manager** plugin (install from Community Applications).
 3. Add stack env vars (Compose Manager UI → Edit → Env) — at minimum:
    - `POSTGRES_PASSWORD`
    - `AUTH_SECRET` (`openssl rand -base64 32`)
-   - `APP_URL` — **the public URL users hit** (e.g. `https://oluhome.example.com`),
+   - `APP_URL` — **the public URL users hit** (e.g. `https://curiolu.example.com`),
      not the LAN IP. Signed file URLs embed this value.
    - `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` (first boot only)
 4. Compose Up.
 
 Data persistence:
 
-- DB volume defaults to `/mnt/user/appdata/oluhome/db`
-- Uploads default to `/mnt/user/appdata/oluhome/uploads`
+- DB volume defaults to `/mnt/user/appdata/curiolu/db`
+- Uploads default to `/mnt/user/appdata/curiolu/uploads`
 
 Override either with `DB_DATA_DIR` / `UPLOADS_DIR` env vars. These land on
 the Unraid array and are included in standard appdata backups.
@@ -142,7 +142,7 @@ the Unraid array and are included in standard appdata backups.
 Reverse proxy (HTTPS):
 
 Put Unraid's reverse-proxy plugin (SWAG, NPM, or Nginx Proxy Manager) in
-front and forward `oluhome.your-domain` → `oluhome-app:3000` on the
+front and forward `curiolu.your-domain` → `curiolu-app:3000` on the
 Docker network. Make sure `APP_URL` matches the public HTTPS URL — NextAuth
 rejects logins when the host header doesn't match.
 

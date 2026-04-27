@@ -1,14 +1,14 @@
-# OluHome on Unraid
+# Curiolu on Unraid
 
 Self-hostable home-inventory and collection-management app. This folder contains
-everything needed to install OluHome on Unraid, either via the Community
+everything needed to install Curiolu on Unraid, either via the Community
 Applications store (single-container) or via Docker Compose Manager (full
 bundled stack).
 
-- **App image:** `ghcr.io/olumentary/oluhome` (linux/amd64)
+- **App image:** `ghcr.io/olumentary/curiolu` (linux/amd64)
 - **License:** see the repo root
-- **Source:** https://github.com/olumentary/oluhome
-- **Issues / support:** https://github.com/olumentary/oluhome/issues
+- **Source:** https://github.com/olumentary/curiolu
+- **Issues / support:** https://github.com/olumentary/curiolu/issues
 
 ---
 
@@ -21,12 +21,12 @@ bundled stack).
    - `postgresql` (linuxserver.io)
    - `postgresql14` / `postgresql15` / `postgresql16` (the bare official images)
    - Any other Postgres 14+ container
-2. Create a database and user for OluHome inside that Postgres:
+2. Create a database and user for Curiolu inside that Postgres:
    ```sql
-   CREATE USER oluhome WITH ENCRYPTED PASSWORD 'pick-a-strong-password';
-   CREATE DATABASE oluhome OWNER oluhome;
+   CREATE USER curiolu WITH ENCRYPTED PASSWORD 'pick-a-strong-password';
+   CREATE DATABASE curiolu OWNER curiolu;
    ```
-3. Open **Apps** in Unraid → search **OluHome** → **Install**.
+3. Open **Apps** in Unraid → search **Curiolu** → **Install**.
 4. Fill in the required fields (see the [Environment variable reference](#environment-variable-reference) below).
 5. **Apply.** First boot runs database migrations and creates the admin user.
 
@@ -42,7 +42,7 @@ with one stack.
    `APP_URL`, `AUTH_SECRET`, `POSTGRES_PASSWORD`, `BOOTSTRAP_ADMIN_*`).
 4. Compose Up.
 
-The stack uses `/mnt/user/appdata/oluhome/{db,uploads}` for persistent data
+The stack uses `/mnt/user/appdata/curiolu/{db,uploads}` for persistent data
 by default. Override with `DB_DATA_DIR` and `UPLOADS_DIR` env vars if you want
 a different location.
 
@@ -55,7 +55,7 @@ a different location.
 | Variable | Description |
 |---|---|
 | `DATABASE_URL` | Postgres connection string. Format: `postgres://USER:PASSWORD@HOST:PORT/DB`. `HOST` is the Postgres container's name on the Docker network or its IP. Append `?sslmode=require` if your Postgres requires TLS. |
-| `APP_URL` | Public URL the app is reached at, including scheme (e.g. `https://oluhome.example.com` or `http://192.168.1.10:3000`). NextAuth callbacks and signed file URLs are built from this. `AUTH_URL` and `NEXT_PUBLIC_APP_URL` default to this value automatically. |
+| `APP_URL` | Public URL the app is reached at, including scheme (e.g. `https://curiolu.example.com` or `http://192.168.1.10:3000`). NextAuth callbacks and signed file URLs are built from this. `AUTH_URL` and `NEXT_PUBLIC_APP_URL` default to this value automatically. |
 | `AUTH_SECRET` | 32+ byte random string. Generate with `openssl rand -base64 32`. Signs session cookies and file-access tokens. **Changing it logs every user out** and invalidates outstanding upload/download links (existing files are fine). |
 
 ### First-boot admin (idempotent — set once, safe to clear after)
@@ -81,21 +81,21 @@ in-app feature flags. Accept `true` / `false` / `1` / `0`.
 
 | Variable | Default | Description |
 |---|---|---|
-| `OLUHOME_REGISTRATION_OPEN` | `true` | Enables the public `/register` page. Set to `false` for single-user installs. |
-| `OLUHOME_AI_ENABLED` | `false` | Global kill switch for AI item analysis. Requires `ANTHROPIC_API_KEY`. |
-| `OLUHOME_AI_BETA_ACCESS` | `false` | Per-user AI access flag. Either this or `OLUHOME_AI_ENABLED` must be true for AI access. |
-| `OLUHOME_SUBSCRIPTIONS_ENABLED` | `false` | Enables plan-limit enforcement and billing UI. Self-hosters typically leave this off. |
+| `CURIOLU_REGISTRATION_OPEN` | `true` | Enables the public `/register` page. Set to `false` for single-user installs. |
+| `CURIOLU_AI_ENABLED` | `false` | Global kill switch for AI item analysis. Requires `ANTHROPIC_API_KEY`. |
+| `CURIOLU_AI_BETA_ACCESS` | `false` | Per-user AI access flag. Either this or `CURIOLU_AI_ENABLED` must be true for AI access. |
+| `CURIOLU_SUBSCRIPTIONS_ENABLED` | `false` | Enables plan-limit enforcement and billing UI. Self-hosters typically leave this off. |
 
 ### Optional integrations
 
 | Variable | Default | Description |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | _(empty)_ | Anthropic API key for AI analysis. Format `sk-ant-…`. Only consulted when `OLUHOME_AI_ENABLED=true`. |
+| `ANTHROPIC_API_KEY` | _(empty)_ | Anthropic API key for AI analysis. Format `sk-ant-…`. Only consulted when `CURIOLU_AI_ENABLED=true`. |
 | `LINODE_ENDPOINT` | _(empty)_ | S3-compatible endpoint URL. Required when `STORAGE_DRIVER=s3`. |
 | `LINODE_BUCKET` | _(empty)_ | S3 bucket name. Required when `STORAGE_DRIVER=s3`. |
 | `LINODE_ACCESS_KEY` | _(empty)_ | S3 access key. Required when `STORAGE_DRIVER=s3`. |
 | `LINODE_SECRET_KEY` | _(empty)_ | S3 secret key. Required when `STORAGE_DRIVER=s3`. |
-| `FLAGS` | _(empty)_ | Vercel Flags SDK secret. Leave unset on Unraid — the self-hosted code path uses the `OLUHOME_*` vars above. |
+| `FLAGS` | _(empty)_ | Vercel Flags SDK secret. Leave unset on Unraid — the self-hosted code path uses the `CURIOLU_*` vars above. |
 
 ### Auto-derived (don't set manually unless you have a reason)
 
@@ -112,19 +112,19 @@ in-app feature flags. Accept `true` / `false` / `1` / `0`.
 
 | Container path | Default host path | Notes |
 |---|---|---|
-| `/app/data/uploads` | `/mnt/user/appdata/oluhome/uploads` | Item photos, receipts, document attachments. Back this up alongside the database. |
+| `/app/data/uploads` | `/mnt/user/appdata/curiolu/uploads` | Item photos, receipts, document attachments. Back this up alongside the database. |
 
 ---
 
 ## Reverse proxy and HTTPS
 
-OluHome speaks plain HTTP from the container. Put it behind a reverse proxy
+Curiolu speaks plain HTTP from the container. Put it behind a reverse proxy
 (SWAG, NPM, Nginx Proxy Manager, Traefik) for HTTPS:
 
-1. Reverse proxy → forward `oluhome.your-domain` → `oluhome:3000` on the
+1. Reverse proxy → forward `curiolu.your-domain` → `curiolu:3000` on the
    Docker network.
-2. Set `APP_URL=https://oluhome.your-domain` in the OluHome container env.
-3. Restart OluHome so signed file URLs use the correct base.
+2. Set `APP_URL=https://curiolu.your-domain` in the Curiolu container env.
+3. Restart Curiolu so signed file URLs use the correct base.
 
 NextAuth rejects logins when the host header doesn't match `AUTH_URL` — keep
 `APP_URL` aligned with whatever URL users actually hit.
@@ -136,16 +136,16 @@ NextAuth rejects logins when the host header doesn't match `AUTH_URL` — keep
 Two things to snapshot together:
 
 1. **Database** — `pg_dump` from the Postgres container.
-2. **Uploads** — the `/mnt/user/appdata/oluhome/uploads` directory (or wherever
+2. **Uploads** — the `/mnt/user/appdata/curiolu/uploads` directory (or wherever
    you mapped it).
 
 A nightly User Scripts entry like:
 
 ```sh
-docker exec oluhome-db pg_dump -U oluhome oluhome \
-  > /mnt/user/backups/oluhome/db-$(date +%F).sql
-tar czf /mnt/user/backups/oluhome/uploads-$(date +%F).tar.gz \
-  /mnt/user/appdata/oluhome/uploads
+docker exec curiolu-db pg_dump -U curiolu curiolu \
+  > /mnt/user/backups/curiolu/db-$(date +%F).sql
+tar czf /mnt/user/backups/curiolu/uploads-$(date +%F).tar.gz \
+  /mnt/user/appdata/curiolu/uploads
 ```
 
 …covers it.
@@ -159,14 +159,14 @@ tar czf /mnt/user/backups/oluhome/uploads-$(date +%F).tar.gz \
   automatically on the next start.
 - **Compose Manager:** `Pull → Up` from the stack's actions menu.
 - **Pin a version** instead of `latest` to avoid surprise upgrades. Edit the
-  template's Repository field to `ghcr.io/olumentary/oluhome:v1.0.0`.
+  template's Repository field to `ghcr.io/olumentary/curiolu:v1.0.0`.
 
 ---
 
 ## Troubleshooting
 
 - **`[bootstrap] failed: connect ECONNREFUSED`** — `DATABASE_URL` host/port is
-  wrong. From the OluHome container's perspective, the Postgres host is the
+  wrong. From the Curiolu container's perspective, the Postgres host is the
   other container's name on the Docker network (e.g. `postgresql14`), not
   `localhost`.
 - **403 on uploaded images** — `AUTH_SECRET` was changed. Fresh signed URLs

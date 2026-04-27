@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'OluHome',
+  title: 'Curiolu',
   description: 'Antique collection management',
 };
 
@@ -31,7 +31,7 @@ export default function RootLayout({
           attribute="class"
           defaultTheme="system"
           enableSystem
-          storageKey="oluhome-theme"
+          storageKey="curiolu-theme"
         >
           {children}
           <Toaster richColors closeButton />

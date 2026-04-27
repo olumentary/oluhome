@@ -1,10 +1,10 @@
-# Claude Code Plugin & MCP Recommendations for OluHome
+# Claude Code Plugin & MCP Recommendations for Curiolu
 
 ## Recommended MCP Servers
 
 ### 1. Context7 — Library Documentation (ESSENTIAL)
 
-Fetches real-time, version-specific documentation for any npm library directly into Claude's context. This is critical for OluHome because the stack includes libraries (Drizzle ORM, @react-pdf/renderer, shadcn/ui, NextAuth v5, dnd-kit) where Claude's training data may be outdated or wrong.
+Fetches real-time, version-specific documentation for any npm library directly into Claude's context. This is critical for Curiolu because the stack includes libraries (Drizzle ORM, @react-pdf/renderer, shadcn/ui, NextAuth v5, dnd-kit) where Claude's training data may be outdated or wrong.
 
 ```bash
 claude mcp add context7 -- npx -y @upstash/context7-mcp
@@ -153,11 +153,11 @@ This pre-approves common safe operations so Claude doesn't prompt you for every 
 
 ## Custom Commands
 
-Create these in `.claude/commands/` for common OluHome workflows:
+Create these in `.claude/commands/` for common Curiolu workflows:
 
 ### `.claude/commands/new-feature.md`
 ```markdown
-Start a new feature branch and implementation. Create a git branch named `feat/$ARGUMENTS`, then implement the feature described. Follow the architecture in the CLAUDE.md and reference the architecture doc at `docs/oluhome-architecture.md` for data model and patterns.
+Start a new feature branch and implementation. Create a git branch named `feat/$ARGUMENTS`, then implement the feature described. Follow the architecture in the CLAUDE.md and reference the architecture doc at `docs/curiolu-architecture.md` for data model and patterns.
 ```
 
 ### `.claude/commands/db-check.md`
@@ -184,7 +184,7 @@ Run `pnpm lint` and `pnpm build`. Fix any TypeScript errors, ESLint violations, 
 Each build prompt from the architecture doc should be its own Claude Code session. At the start of each session:
 
 1. Claude reads CLAUDE.md automatically
-2. Reference the specific prompt: "Implement Prompt 3 from docs/oluhome-architecture.md"
+2. Reference the specific prompt: "Implement Prompt 3 from docs/curiolu-architecture.md"
 3. Claude reads the prompt, reads existing code, and builds
 
 Between sessions, use `/clear` to reset context. Don't let sessions accumulate — context degradation is the primary failure mode.
