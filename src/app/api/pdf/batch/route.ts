@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
   return new NextResponse(new Uint8Array(buffer), {
     headers: {
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `inline; filename="oluhome-${safeTitle}-${template}.pdf"`,
+      'Content-Disposition': `inline; filename="curiolu-${safeTitle}-${template}.pdf"`,
     },
   });
 }

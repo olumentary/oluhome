@@ -28,7 +28,7 @@ case "${AUTH_URL:-}" in
   http://*|https://*) ;;
   '')
     echo "[entrypoint] FATAL: APP_URL / AUTH_URL is not set" >&2
-    echo "[entrypoint] set APP_URL to the public URL users hit, e.g. https://oluhome.example.com" >&2
+    echo "[entrypoint] set APP_URL to the public URL users hit, e.g. https://curiolu.example.com" >&2
     exit 1
     ;;
   *)

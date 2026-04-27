@@ -115,7 +115,7 @@ export function CoverPage({
 
   return (
     <Page size="LETTER" style={s.page}>
-      <Text style={s.wordmark}>OluHome</Text>
+      <Text style={s.wordmark}>Curiolu</Text>
       <Text style={s.title}>{title}</Text>
       {subtitle && <Text style={s.subtitle}>{subtitle}</Text>}
 

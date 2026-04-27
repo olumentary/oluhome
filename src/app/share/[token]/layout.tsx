@@ -58,7 +58,7 @@ export default async function SharedLayout({
         {children}
       </main>
       <footer className="border-t px-4 py-4 text-center text-xs text-muted-foreground">
-        Powered by OluHome
+        Powered by Curiolu
       </footer>
     </div>
   );
@@ -69,7 +69,7 @@ function SharedHeader({ ownerName }: { ownerName: string | null }) {
     <header className="border-b bg-surface px-4 py-3">
       <div className="mx-auto flex max-w-6xl items-center justify-between">
         <span className="text-lg font-bold tracking-tight text-foreground">
-          OluHome
+          Curiolu
         </span>
         {ownerName && (
           <span className="text-sm text-muted-foreground">

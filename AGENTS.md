@@ -1,4 +1,4 @@
-# OluHome
+# Curiolu
 
 Multi-tenant SaaS for antique and decorative arts collection management. Next.js 15 (App Router), TypeScript strict, Tailwind CSS 4, Vercel Postgres (Neon) via Drizzle ORM, Linode Object Storage (S3-compatible), Vercel Flags SDK.
 
@@ -44,7 +44,7 @@ pnpm tsx src/db/migrate.ts           # apply pending migrations against DATABASE
 - `src/flags.ts` — Vercel Flags SDK flag definitions
 - `src/types/index.ts` — shared types, Drizzle inferred types
 
-Full architecture doc: `docs/oluhome-architecture.md`
+Full architecture doc: `docs/curiolu-architecture.md`
 
 ## Coding Conventions
 

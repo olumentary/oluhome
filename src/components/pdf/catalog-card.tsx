@@ -17,7 +17,7 @@ import {
 } from '@/lib/pdf';
 
 // ---------------------------------------------------------------------------
-// Design tokens (matches OluHome theme)
+// Design tokens (matches Curiolu theme)
 // ---------------------------------------------------------------------------
 
 const colors = {
@@ -252,7 +252,7 @@ export function CatalogCard({ item }: CatalogCardProps) {
       <Page size="LETTER" style={s.page}>
         {/* Header */}
         <View style={s.header}>
-          <Text style={s.wordmark}>OluHome</Text>
+          <Text style={s.wordmark}>Curiolu</Text>
           <Text style={s.reference}>Ref. OLU-{shortId}</Text>
         </View>
 

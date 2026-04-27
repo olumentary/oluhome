@@ -3,13 +3,13 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-oluhome}
+      POSTGRES_USER: ${POSTGRES_USER:-curiolu}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-oluhome}
+      POSTGRES_DB: ${POSTGRES_DB:-curiolu}
     volumes:
       - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-oluhome} -d ${POSTGRES_DB:-oluhome}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-curiolu} -d ${POSTGRES_DB:-curiolu}"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -24,7 +24,7 @@ services:
         condition: service_healthy
     environment:
       # --- Database ---
-      DATABASE_URL: postgres://${POSTGRES_USER:-oluhome}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-oluhome}
+      DATABASE_URL: postgres://${POSTGRES_USER:-curiolu}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-curiolu}
       DB_DRIVER: node-postgres
 
       # --- Storage ---
@@ -42,10 +42,10 @@ services:
       BOOTSTRAP_ADMIN_NAME: ${BOOTSTRAP_ADMIN_NAME:-Admin}
 
       # --- Feature flags (env-driven when FLAGS is unset) ---
-      OLUHOME_AI_ENABLED: ${OLUHOME_AI_ENABLED:-false}
-      OLUHOME_AI_BETA_ACCESS: ${OLUHOME_AI_BETA_ACCESS:-false}
-      OLUHOME_REGISTRATION_OPEN: ${OLUHOME_REGISTRATION_OPEN:-true}
-      OLUHOME_SUBSCRIPTIONS_ENABLED: ${OLUHOME_SUBSCRIPTIONS_ENABLED:-false}
+      CURIOLU_AI_ENABLED: ${CURIOLU_AI_ENABLED:-false}
+      CURIOLU_AI_BETA_ACCESS: ${CURIOLU_AI_BETA_ACCESS:-false}
+      CURIOLU_REGISTRATION_OPEN: ${CURIOLU_REGISTRATION_OPEN:-true}
+      CURIOLU_SUBSCRIPTIONS_ENABLED: ${CURIOLU_SUBSCRIPTIONS_ENABLED:-false}
 
       # --- Optional: AI provider ---
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}

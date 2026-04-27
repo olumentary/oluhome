@@ -1,4 +1,4 @@
-# OluHome — Antique Collection Management System
+# Curiolu — Antique Collection Management System
 
 ## Architecture Plan & Claude Code Build Sequence
 
@@ -6,7 +6,7 @@
 
 ## 1. Project Overview
 
-**OluHome** is a multi-tenant SaaS collection management system for tracking antiques and decorative arts — furniture, porcelain, textiles, rugs, silver, paintings, and other collectibles. It supports detailed cataloging with photos, provenance, valuations, vendor history, and produces museum-quality PDF output for both catalog presentation and insurance documentation.
+**Curiolu** is a multi-tenant SaaS collection management system for tracking antiques and decorative arts — furniture, porcelain, textiles, rugs, silver, paintings, and other collectibles. It supports detailed cataloging with photos, provenance, valuations, vendor history, and produces museum-quality PDF output for both catalog presentation and insurance documentation.
 
 The app is designed from day one for eventual public availability with paid subscription tiers. Initially it launches as a private instance for a single user, but all data isolation, auth, registration, and subscription scaffolding are built to support opening to the public without architectural changes.
 
@@ -124,8 +124,8 @@ If using lazy.nvim, the key plugins are `nvim-lspconfig`, `mason.nvim` (to insta
 ```bash
 # After Claude Code creates the project scaffold (Prompt 0)
 cd ~/projects  # or wherever you keep code
-git init oluhome
-cd oluhome
+git init curiolu
+cd curiolu
 
 # Install dependencies
 pnpm install
@@ -150,7 +150,7 @@ AUTH_URL="http://localhost:3000"
 LINODE_ACCESS_KEY="your-access-key"
 LINODE_SECRET_KEY="your-secret-key"
 LINODE_ENDPOINT="https://us-east-1.linodeobjects.com"
-LINODE_BUCKET="oluhome-photos"
+LINODE_BUCKET="curiolu-photos"
 
 # Anthropic API
 ANTHROPIC_API_KEY="sk-ant-..."
@@ -244,7 +244,7 @@ Complete these steps **before** starting the Claude Code build prompts.
 3. **Create the project on Vercel:**
    After Claude Code scaffolds the project (Prompt 0), link it:
    ```bash
-   cd oluhome
+   cd curiolu
    vercel link
    # Select "Create a new project"
    # Framework: Next.js (auto-detected)
@@ -267,7 +267,7 @@ Complete these steps **before** starting the Claude Code build prompts.
    vercel env add ANTHROPIC_API_KEY
    vercel env add NEXT_PUBLIC_APP_URL
    vercel env add FLAGS_SECRET  # Generate at https://generate-secret.vercel.app/32
-   # Set NEXT_PUBLIC_APP_URL to your production URL (e.g., https://oluhome.vercel.app)
+   # Set NEXT_PUBLIC_APP_URL to your production URL (e.g., https://curiolu.vercel.app)
    ```
 
 5. **Connect your Git repository:**
@@ -288,7 +288,7 @@ This keeps billing consolidated in Vercel and auto-injects env vars.
 1. Go to the [Neon integration on Vercel Marketplace](https://vercel.com/marketplace/neon)
 2. Click **Install** → **Create New Neon Account** (or link existing)
 3. Accept terms, pick a region (`us-east-1` is closest to Charlottesville), select the **Free Plan** (generous for solo dev — 0.5 GB storage, 190 compute hours/month)
-4. Name the database `oluhome` → Click **Create**
+4. Name the database `curiolu` → Click **Create**
 5. You land on the Vercel **Storage** tab. Click **Connect Project** → select your Vercel project → check **Development**, **Preview**, and **Production** environments → **Connect**
 6. Vercel auto-injects `DATABASE_URL`, `PGHOST`, `PGUSER`, `PGPASSWORD`, `PGDATABASE` into your project env vars
 
@@ -305,7 +305,7 @@ This keeps billing consolidated in Vercel and auto-injects env vars.
 If you already have a Neon account or prefer to keep billing separate:
 
 1. Go to [console.neon.tech](https://console.neon.tech) → Create Project
-2. Name it `oluhome`, select region `us-east-1`
+2. Name it `curiolu`, select region `us-east-1`
 3. Copy the connection string from the **Connect** widget
 4. In Vercel: Project Settings → Environment Variables → add `DATABASE_URL` with the connection string for all environments
 5. Pull locally: `vercel env pull .env.local`
@@ -322,14 +322,14 @@ If you already have a Neon account or prefer to keep billing separate:
 1. **Create a bucket in Linode Cloud Manager:**
    - Go to [cloud.linode.com](https://cloud.linode.com) → Object Storage
    - Create a bucket:
-     - Label: `oluhome-photos`
+     - Label: `curiolu-photos`
      - Region: `us-east-1` (Newark) or closest to you
    - Note the endpoint URL (e.g., `https://us-east-1.linodeobjects.com`)
 
 2. **Generate access keys:**
    - Object Storage → Access Keys → Create Access Key
-   - Label: `oluhome-app`
-   - Permissions: Limited — select only the `oluhome-photos` bucket, Read/Write
+   - Label: `curiolu-app`
+   - Permissions: Limited — select only the `curiolu-photos` bucket, Read/Write
    - Save the Access Key and Secret Key immediately (secret is shown only once)
 
 3. **Configure CORS on the bucket:**
@@ -352,7 +352,7 @@ If you already have a Neon account or prefer to keep billing separate:
    <CORSConfiguration>
      <CORSRule>
        <AllowedOrigin>http://localhost:3000</AllowedOrigin>
-       <AllowedOrigin>https://oluhome.vercel.app</AllowedOrigin>
+       <AllowedOrigin>https://curiolu.vercel.app</AllowedOrigin>
        <AllowedOrigin>https://*.vercel.app</AllowedOrigin>
        <AllowedMethod>GET</AllowedMethod>
        <AllowedMethod>PUT</AllowedMethod>
@@ -363,7 +363,7 @@ If you already have a Neon account or prefer to keep billing separate:
    </CORSConfiguration>
    EOF
 
-   s3cmd setcors /tmp/cors.xml s3://oluhome-photos
+   s3cmd setcors /tmp/cors.xml s3://curiolu-photos
    ```
 
    Update the `AllowedOrigin` values to match your actual Vercel production URL
@@ -371,14 +371,14 @@ If you already have a Neon account or prefer to keep billing separate:
 
 4. **Verify access:**
    ```bash
-   s3cmd ls s3://oluhome-photos
+   s3cmd ls s3://curiolu-photos
    # Should return empty (no objects yet) without errors
    ```
 
 ### 4d. Anthropic API Key
 
 1. Go to [console.anthropic.com](https://console.anthropic.com)
-2. Create an API key for the OluHome project
+2. Create an API key for the Curiolu project
 3. Add credit/billing if not already set up
 4. The AI analysis feature uses Claude's vision capabilities — costs are
    roughly $0.01–0.05 per analysis depending on photo count and resolution
@@ -386,7 +386,7 @@ If you already have a Neon account or prefer to keep billing separate:
 ### 4e. Custom Domain (Optional)
 
 1. **In Vercel dashboard:** Project Settings → Domains → Add Domain
-2. Enter your domain (e.g., `home.custerdesign.com` or `oluhome.custerdesign.com`)
+2. Enter your domain (e.g., `home.custerdesign.com` or `curiolu.custerdesign.com`)
 3. Vercel will show DNS records to add:
    - For a subdomain: add a CNAME record pointing to `cname.vercel-dns.com`
    - For an apex domain: add an A record to `76.76.21.21`
@@ -600,7 +600,7 @@ Before your first production deployment, verify:
 
 **Tenant Isolation Strategy: Row-Level User Scoping**
 
-OluHome uses a user-level tenancy model where every data-owning table includes a `user_id` foreign key. This is the simplest multi-tenant pattern for a Postgres-backed SaaS, and it's already baked into the schema above. Key principles:
+Curiolu uses a user-level tenancy model where every data-owning table includes a `user_id` foreign key. This is the simplest multi-tenant pattern for a Postgres-backed SaaS, and it's already baked into the schema above. Key principles:
 
 1. **Every query is tenant-scoped.** A centralized helper function `scopedQuery(userId)` wraps all database reads with a `.where(eq(table.userId, userId))` clause. No query should ever run without tenant scoping — this is enforced by the `requireAuth()` helper which always returns the authenticated user, and all data-access functions require a userId parameter.
 
@@ -616,7 +616,7 @@ OluHome uses a user-level tenancy model where every data-owning table includes a
 
 ### Feature Flag System (Vercel Flags SDK)
 
-OluHome uses the **Vercel Flags SDK** (`flags` npm package) — the official, framework-native feature flag library for Next.js. Flags are defined as code in a single file, evaluated server-side only (no client-side layout shift), and integrate with the Vercel Toolbar Flags Explorer for local overrides during development.
+Curiolu uses the **Vercel Flags SDK** (`flags` npm package) — the official, framework-native feature flag library for Next.js. Flags are defined as code in a single file, evaluated server-side only (no client-side layout shift), and integrate with the Vercel Toolbar Flags Explorer for local overrides during development.
 
 **Why Flags SDK over env vars:** Environment variables require a redeploy to change. The Flags SDK evaluates flags per-request, supports the Vercel Toolbar for instant local overrides, and provides a typed API. Most importantly, each flag is a function with a `decide()` callback that can read the user's session, plan, or any other context — so flags can be global kill switches OR user-targeted.
 
@@ -785,7 +785,7 @@ The `field_schema` column on `collection_item_types` defines per-type fields:
 ### Directory Structure
 
 ```
-oluhome/
+curiolu/
 ├── src/
 │   ├── app/                          # Next.js App Router
 │   │   ├── (auth)/                   # Auth layout group
@@ -990,10 +990,10 @@ The prompts are ordered to build foundational infrastructure first, then progres
 ### Prompt 0: Project Scaffolding
 
 ```
-Initialize a new Next.js 15 project called "oluhome" with the App Router, TypeScript,
+Initialize a new Next.js 15 project called "curiolu" with the App Router, TypeScript,
 Tailwind CSS 4, and the following configuration:
 
-1. Run `npx create-next-app@latest oluhome` with TypeScript, Tailwind, App Router,
+1. Run `npx create-next-app@latest curiolu` with TypeScript, Tailwind, App Router,
    src/ directory, and import alias @/
 
 2. Install core dependencies:
@@ -1059,7 +1059,7 @@ Tailwind CSS 4, and the following configuration:
 
 9. Set up next-themes in the root layout:
    - Install next-themes, wrap app in ThemeProvider with attribute="class"
-     defaultTheme="system" enableSystem storageKey="oluhome-theme"
+     defaultTheme="system" enableSystem storageKey="curiolu-theme"
    - Import Inter from next/font/google as variable font
    - Set Inter as the body font via className on html element
    - Apply background and text colors via CSS variables on body
@@ -1073,7 +1073,7 @@ dependencies installed, configured, and verified to compile with `pnpm build`.
 ### Prompt 1: Database Schema & Migrations
 
 ```
-Working in the oluhome project, create the complete Drizzle ORM database schema
+Working in the curiolu project, create the complete Drizzle ORM database schema
 and generate the initial migration.
 
 Create src/db/schema.ts with the following tables. Use UUIDs for all primary keys
@@ -1160,7 +1160,7 @@ The seed script should also:
 ### Prompt 2: Authentication System
 
 ```
-Working in the oluhome project, implement the authentication system using
+Working in the curiolu project, implement the authentication system using
 NextAuth.js v5 (Auth.js) with the Drizzle adapter, designed for multi-tenant SaaS.
 
 1. Configure NextAuth in src/auth.ts:
@@ -1180,7 +1180,7 @@ NextAuth.js v5 (Auth.js) with the Drizzle adapter, designed for multi-tenant Saa
 
 3. Build the auth pages in src/app/(auth)/:
    - /login page: email + password form, centered card on --background
-   - App name "OluHome" in Inter Bold as the visual logo, primary color
+   - App name "Curiolu" in Inter Bold as the visual logo, primary color
    - Primary-colored submit button, --border input borders
    - Error display for invalid credentials
    - "Don't have an account? Sign up" link to /register
@@ -1259,7 +1259,7 @@ Inter font, --primary button. Must work in both light and dark modes.
 ### Prompt 3: Layout & Navigation Shell
 
 ```
-Working in the oluhome project, build the authenticated application shell —
+Working in the curiolu project, build the authenticated application shell —
 sidebar navigation, header, and dashboard overview.
 
 1. Dashboard layout (src/app/(dashboard)/layout.tsx):
@@ -1268,7 +1268,7 @@ sidebar navigation, header, and dashboard overview.
    - Main area: max-width 1400px container, centered, with comfortable padding
 
 2. Sidebar (src/components/layout/sidebar.tsx):
-   - "OluHome" in Inter Bold at top (text-xl, white color on primary background)
+   - "Curiolu" in Inter Bold at top (text-xl, white color on primary background)
    - Navigation links with Lucide icons, each with an item count badge where relevant:
      • Dashboard (LayoutDashboard)
      • Collection (Package) — total item count badge
@@ -1315,7 +1315,7 @@ Include a theme toggle (Sun/Moon icon) in the header using next-themes useTheme(
 ### Prompt 4: Custom Item Types Management
 
 ```
-Working in the oluhome project, build the collection item types management UI —
+Working in the curiolu project, build the collection item types management UI —
 defining and editing custom field schemas that drive the dynamic item forms.
 
 1. Types list page (src/app/(dashboard)/types/page.tsx):
@@ -1375,7 +1375,7 @@ existing custom_fields JSONB data — the field simply stops rendering in forms.
 ### Prompt 5: Collection Items — CRUD & Dynamic Forms
 
 ```
-Working in the oluhome project, build collection items CRUD with the dynamic
+Working in the curiolu project, build collection items CRUD with the dynamic
 form system driven by custom item type schemas.
 
 1. Items list page (src/app/(dashboard)/items/page.tsx):
@@ -1507,7 +1507,7 @@ All colors via CSS variables so dark mode works automatically.
 ### Prompt 6: Photo Management & S3 Integration
 
 ```
-Working in the oluhome project, build the photo management system with
+Working in the curiolu project, build the photo management system with
 Linode Object Storage (S3-compatible) integration.
 
 1. S3 client (src/lib/storage.ts):
@@ -1587,7 +1587,7 @@ Show a placeholder image for items with no photos.
 ### Prompt 7: Vendor Management & Acquisitions
 
 ```
-Working in the oluhome project, build the vendor/dealer management feature
+Working in the curiolu project, build the vendor/dealer management feature
 and the acquisition tracking system.
 
 1. Vendors list page (src/app/(dashboard)/vendors/page.tsx):
@@ -1658,7 +1658,7 @@ and the acquisition tracking system.
 ### Prompt 8: Valuations & Analytics Dashboard
 
 ```
-Working in the oluhome project, build the valuation tracking system and the
+Working in the curiolu project, build the valuation tracking system and the
 analytics dashboard.
 
 1. Valuation form (src/components/items/valuation-form.tsx):
@@ -1750,7 +1750,7 @@ analytics dashboard.
 ### Prompt 9: PDF Generation — Catalog Card & Insurance Sheet
 
 ```
-Working in the oluhome project, build the PDF generation system using
+Working in the curiolu project, build the PDF generation system using
 @react-pdf/renderer with two templates.
 
 1. PDF utilities (src/lib/pdf.ts):
@@ -1772,7 +1772,7 @@ Working in the oluhome project, build the PDF generation system using
    Single page, US Letter (8.5 × 11"), margins: 0.75" all sides.
 
    Top section:
-   - "OluHome" wordmark: Inter italic, 10pt, primary-light color, top-left
+   - "Curiolu" wordmark: Inter italic, 10pt, primary-light color, top-left
    - Reference: "Ref. OLU-{shortId}" top-right, Inter 8pt, --text-muted
 
    Photo section (~40% of page):
@@ -1865,7 +1865,7 @@ Working in the oluhome project, build the PDF generation system using
    - Renders PDF with @react-pdf/renderer renderToBuffer
    - Returns with headers:
      Content-Type: application/pdf
-     Content-Disposition: inline; filename="oluhome-{title}-{template}.pdf"
+     Content-Disposition: inline; filename="curiolu-{title}-{template}.pdf"
 
 5. Batch PDF route (src/app/api/pdf/batch/route.ts):
    - POST body: { itemIds?: string[], room?: string, template: 'catalog'|'insurance' }
@@ -1894,7 +1894,7 @@ Handle edge cases:
 ### Prompt 10: AI Analysis Integration
 
 ```
-Working in the oluhome project, build the AI-powered analysis feature using
+Working in the curiolu project, build the AI-powered analysis feature using
 the Anthropic SDK with Claude's vision capabilities.
 
 IMPORTANT: All AI features must be gated behind the `aiEnabled` and `aiBetaAccess`
@@ -2023,7 +2023,7 @@ This ensures AI features are fully built and functional but invisible until laun
 ### Prompt 11: Share System
 
 ```
-Working in the oluhome project, build the share token system for giving
+Working in the curiolu project, build the share token system for giving
 read-only access to appraisers, insurers, and other recipients.
 
 1. Share utilities (src/lib/share.ts):
@@ -2058,7 +2058,7 @@ read-only access to appraisers, insurers, and other recipients.
    No auth required. Minimal branded layout.
 
    layout.tsx:
-   - Clean header: "OluHome" wordmark (Inter) + "Shared by {owner name}"
+   - Clean header: "Curiolu" wordmark (Inter) + "Shared by {owner name}"
    - Expiration notice if token expires within 7 days
    - No sidebar, no editing controls
    - --background + --surface styling, same clean aesthetic
@@ -2103,7 +2103,7 @@ read-only access to appraisers, insurers, and other recipients.
 ### Prompt 12: Search, Polish & Performance
 
 ```
-Working in the oluhome project, implement full-text search, add polish
+Working in the curiolu project, implement full-text search, add polish
 and loading states throughout, and optimize performance.
 
 1. Full-text search:

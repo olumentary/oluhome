@@ -164,7 +164,7 @@ function CatalogCardPage({ item }: { item: ItemForPdf }) {
   return (
     <Page size="LETTER" style={cs.page}>
       <View style={cs.header}>
-        <Text style={cs.wordmark}>OluHome</Text>
+        <Text style={cs.wordmark}>Curiolu</Text>
         <Text style={cs.reference}>Ref. OLU-{shortId}</Text>
       </View>
       <View style={cs.photoSection}>

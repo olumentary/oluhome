@@ -24,7 +24,7 @@ export function RegisterForm() {
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 text-center">
-        <h1 className="text-2xl font-bold text-primary">OluHome</h1>
+        <h1 className="text-2xl font-bold text-primary">Curiolu</h1>
       </div>
 
       <Card>

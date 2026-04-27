@@ -20,7 +20,7 @@ const identify = dedupe(async () => {
 });
 
 // Use Vercel adapter when FLAGS env var is present (Vercel deployments).
-// When missing (local dev, Docker, CI), flags read from OLUHOME_* env vars,
+// When missing (local dev, Docker, CI), flags read from CURIOLU_* env vars,
 // falling back to the defaultValue. This lets self-hosters enable/disable
 // features by setting env vars instead of managing a Vercel dashboard.
 const useVercel = !!process.env.FLAGS;
@@ -43,7 +43,7 @@ export const aiEnabled = flag<boolean>({
   identify,
   ...(useVercel
     ? { adapter: vercelAdapter() }
-    : { decide: () => envBool('OLUHOME_AI_ENABLED', false) }),
+    : { decide: () => envBool('CURIOLU_AI_ENABLED', false) }),
   options: [
     { value: true, label: 'Enabled' },
     { value: false, label: 'Disabled' },
@@ -57,7 +57,7 @@ export const aiBetaAccess = flag<boolean>({
   identify,
   ...(useVercel
     ? { adapter: vercelAdapter() }
-    : { decide: () => envBool('OLUHOME_AI_BETA_ACCESS', false) }),
+    : { decide: () => envBool('CURIOLU_AI_BETA_ACCESS', false) }),
   options: [
     { value: true, label: 'Enabled' },
     { value: false, label: 'Disabled' },
@@ -71,7 +71,7 @@ export const registrationOpen = flag<boolean>({
   identify,
   ...(useVercel
     ? { adapter: vercelAdapter() }
-    : { decide: () => envBool('OLUHOME_REGISTRATION_OPEN', false) }),
+    : { decide: () => envBool('CURIOLU_REGISTRATION_OPEN', false) }),
   options: [
     { value: true, label: 'Open' },
     { value: false, label: 'Closed' },
@@ -85,7 +85,7 @@ export const subscriptionsEnabled = flag<boolean>({
   identify,
   ...(useVercel
     ? { adapter: vercelAdapter() }
-    : { decide: () => envBool('OLUHOME_SUBSCRIPTIONS_ENABLED', false) }),
+    : { decide: () => envBool('CURIOLU_SUBSCRIPTIONS_ENABLED', false) }),
   options: [
     { value: true, label: 'Enabled' },
     { value: false, label: 'Disabled' },
